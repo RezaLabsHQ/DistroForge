@@ -10,6 +10,8 @@ from rich.text import Text
 from rich.columns import Columns
 from rich import box
 
+console = Console()
+
 BANNER = r"""
     ____  _      __             ______
    / __ \(_)____/ /__________  / ____/___  _________ ____
@@ -23,7 +25,7 @@ VERSION = "1.0.0"
 
 def show_banner():
     """Display the DistroForge banner."""
-    Console.print(
+    console.print(
         Panel(
             Text(BANNER, style="bold cyan", justify="center"),
             subtitle = f"[dim]v{VERSION} - by Hamid at Reza Labs HQ[/]",
@@ -32,5 +34,6 @@ def show_banner():
             padding = (0,2),
         )
     )
-    Console.print()
+    console.print()
     
+
