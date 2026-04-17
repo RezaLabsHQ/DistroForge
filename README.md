@@ -1,6 +1,7 @@
 # DistroForge
 
-<div align="center>
+<div align="center">
+
 ```
 ██████╗ ██╗███████╗████████╗██████╗  ██████╗ ███████╗ ██████╗ ██████╗  ██████╗ ███████╗
  ██╔══██╗██║██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝
@@ -9,7 +10,9 @@
  ██████╔╝██║███████║   ██║   ██║  ██║╚██████╔╝██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
  ╚═════╝ ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 ```
+
 **A professional terminal-based Linux distro setup automation tool.**
+
 </div>
 
 DistroForge automates the complete setup of a fresh Linux installation — from system updates and driver verification to dev environment, gaming layer, and quality-of-life configuration. One command, fully configured machine.
