@@ -5,47 +5,48 @@ Abstraction layer for distro-specific packager managment commands.
 
 from abc import ABC, abstractmethod
 
+
 class DistroAdapter(ABC):
     """Base class for distro-sepcific commands"""
-    
+
     @abstractmethod
     def update(self) -> str:
         """Return the system update command."""
         pass
-    
+
     @abstractmethod
     def install(self, *packages: str) -> str:
         """Return the install command for given packages."""
         pass
-    
+
     @abstractmethod
     def install_flatpak(self, app_id: str) -> str:
         """Return flatpak install command."""
         pass
-    
+
     @abstractmethod
     def add_repo(self, name: str, repo_url: str, key_url: str = "") -> list[tuple[str, str]]:
         """Return commands to add a third-party repository."""
         pass
-    
+
     @abstractmethod
     def upgrade(self) -> str:
         """Return the full system upgrade command."""
         pass
-    
+
 class UbuntuAdapter(DistroAdapter):
     """Adapter for Ubuntu, Pop!_OS, Mint, and other Debian-based distros."""
-    
+
     def update(self) -> str:
         return "sudo apt update"
-    
+
     def install(self, *packages: str) -> str:
         pkgs = " ".join(packages)
         return f"sudo apt install -y {pkgs}"
-    
+
     def install_flatpak(self, app_id: str) -> str:
         return f"flatpak install -y flathub {app_id}"
-    
+
     def add_repo(self, name, repo_url, key_url = "") -> list[tuple[str, str]]:
         """
         Add a third-party apt repository.
@@ -71,17 +72,17 @@ class UbuntuAdapter(DistroAdapter):
             ))
         commands.append(("sudo apt update", f"Update package lists after adding {name}"))
         return commands
-    
+
     def upgrade(self) -> str:
         return "sudo apt update && sudo apt full-upgrade -y"
-    
-    
+
+
 class FedoraAdapter(DistroAdapter):
     """Adapter for Fedora, Nobara, and other RPM-based distros. (Stub)"""
-    
+
     def update(self) -> str:
         return "sudo dnf check-update"
-    
+
     def install(self, *packages: str) -> str:
         pkgs = " ".join(packages)
         return f"sudo dnf install -y {pkgs}"
@@ -104,8 +105,8 @@ class FedoraAdapter(DistroAdapter):
 
     def upgrade(self) -> str:
         return "sudo dnf upgrade -y"
-    
-    
+
+
 def get_adapter(family: str) -> DistroAdapter:
     """Factory: return the correct adapter for the distro family."""
     adapters = {

@@ -3,11 +3,11 @@ DistroForge - Distro & Hardware Detector
 Identifies the current linux distribution, GPU vendor, and system capbilites
 """
 
-import subprocess
 import re
-from dataclasses import dataclass, field
-from pathlib import Path
+import subprocess
+from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 
 
 class DistroFamily(Enum):
@@ -27,7 +27,7 @@ class GpuVendor(Enum):
     AMD = "amd"
     INTEL = "intel"
     UNKNOWN = "unknown"
-    
+
 @dataclass
 class SystemInfo:
     """Complete system information snapshot."""
@@ -35,26 +35,26 @@ class SystemInfo:
     distro_name: str = ""
     distro_version: str = ""
     distro_codename: str = ""
-    distro_family: DistroFamily = DistroFamily.UNKNOWN #Default 
+    distro_family: DistroFamily = DistroFamily.UNKNOWN #Default
     package_manager: str = ""
-    
+
     gpu_vendor: GpuVendor = GpuVendor.UNKNOWN #Default
     gpu_name: str = ""
     gpu_driver: str = ""
-    
+
     cpu_name: str = ""
     ram_gb: int = 0
     hostname: str = ""
     username: str = ""
     home_dir: str = ""
     shell: str  = ""
-    
+
     #Default Window manager and package manager
     is_wayland: bool = False
     has_flatpak: bool = False
     has_snap: bool = False
-  
-    
+
+
 def _run(cmd: str) -> str:
     """Run a shell command and return stripped stdout, or empty string on failure."""
     try:
@@ -65,7 +65,7 @@ def _run(cmd: str) -> str:
     except (subprocess.TimeoutExpired, Exception):
         return ""
 
-    
+
 def _read_file(path: str) -> str:
     """Read a file and return contens, or empty string if missing."""
     try:
@@ -77,12 +77,12 @@ def _read_file(path: str) -> str:
 def detect_distro() -> tuple[str, str, str, str, DistroFamily, str]:
     """Detect Linux distribution details from /etc/os-release."""
     os_release = _read_file("/etc/os-release")
-    
+
     distro_id = ""
     distro_name = ""
     distro_version = ""
     distro_codename = ""
-    
+
     for line in os_release.splitlines():
         if line.startswith("ID="):
             distro_id = line.split("=", 1)[1].strip('"').lower()
@@ -92,18 +92,18 @@ def detect_distro() -> tuple[str, str, str, str, DistroFamily, str]:
             distro_version = line.split("=", 1)[1].strip('"')
         elif line.startswith("VERSION_CODENAME="):
             distro_codename = line.split("=", 1)[1].strip('"')
-            
+
     # Also check ID_LIKE for family detection
     id_like = ""
     for line in os_release.splitlines():
         if line.startswith("ID_LIKE="):
             id_like = line.split("=", 1)[1].strip('"').lower()
-            
+
     # Determine family
     ubuntu_ids = {"ubuntu", "pop", "linuxmint", "elementary", "zorin", "neon"}
     fedora_ids = {"fedora", "nobara", "ultramarine"}
     arch_ids = {"arch", "manjaro", "endeavouros", "garuda", "cachyos"}
-    
+
     if distro_id in ubuntu_ids or "ubuntu" in id_like or "debian" in id_like:
         family = DistroFamily.UBUNTU
         pkg_mgr = "apt"
@@ -116,18 +116,18 @@ def detect_distro() -> tuple[str, str, str, str, DistroFamily, str]:
     else:
         family = DistroFamily.UNKNOWN
         pkg_mgr = "unknown"
-        
+
     return distro_id, distro_name, distro_version, distro_codename, family, pkg_mgr
-        
+
 def detect_gpu() -> tuple[GpuVendor, str, str]:
     """Detect GPU vendor and model via lspci"""
     lspci = _run("lspci | grep -iE 'vga|3d|display'") # Run Command
-    
+
     if not lspci:
         return GpuVendor.UNKNOWN, "unkown", ""
-    
+
     lspci_lower = lspci.lower()
-    
+
     if "nvidia" in lspci_lower:
         vendor = GpuVendor.NVIDIA
         # Try to get driver version
@@ -141,11 +141,11 @@ def detect_gpu() -> tuple[GpuVendor, str, str]:
     else:
         vendor = GpuVendor.UNKNOWN
         driver = ""
-    
+
     # Extract GPU model name
     match = re.search(r':\s+(.+?)$', lspci.split('\n')[0])
     gpu_name = match.group(1) if match else lspci.split('\n')[0]
-    
+
     return vendor, gpu_name, driver
 
 def detect_cpu() -> str:
@@ -171,7 +171,7 @@ def detect_system() -> SystemInfo:
     """Run full system detection and return a SystemInfo dataclase."""
     distro_id, distro_name, distro_version, distro_codename, family, pkg_mgr = detect_distro()
     gpu_vendor, gpu_name, gpu_driver = detect_gpu()
-    
+
     info = SystemInfo(
         distro_id=distro_id,
         distro_name=distro_name,
@@ -192,5 +192,5 @@ def detect_system() -> SystemInfo:
         has_flatpak=bool(_run("which flatpak")),
         has_snap=bool(_run("which snap")),
     )
-    
+
     return info

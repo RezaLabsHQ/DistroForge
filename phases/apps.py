@@ -3,8 +3,8 @@ DistroForge — Apps Phase
 Installs Flatpak applications, Nerd Fonts, and peripheral tools.
 """
 
-from phases import Phase
 from distros import get_adapter
+from phases import Phase
 
 
 class AppsPhase(Phase):

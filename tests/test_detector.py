@@ -2,19 +2,17 @@
 Tests for core.detector — distro and hardware detection.
 """
 
-import pytest
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
+
 from core.detector import (
-    detect_distro,
-    detect_gpu,
-    detect_cpu,
-    detect_ram,
-    detect_system,
     DistroFamily,
     GpuVendor,
     SystemInfo,
+    detect_cpu,
+    detect_distro,
+    detect_gpu,
+    detect_ram,
 )
-
 
 # ── Distro Detection ──────────────────────────────────
 
@@ -46,7 +44,7 @@ class TestDetectDistro:
             'ID_LIKE="ubuntu debian"\n'
         )
         with self._mock_os_release(os_release):
-            distro_id, name, _, _, family, pkg = detect_distro()
+            distro_id, _name, _, _, family, pkg = detect_distro()
             assert distro_id == "pop"
             assert family == DistroFamily.UBUNTU
             assert pkg == "apt"

@@ -3,8 +3,8 @@ DistroForge — Gaming Phase
 Installs Steam, Proton tools, Gamemode, MangoHud, and Lutris.
 """
 
-from phases import Phase
 from distros import get_adapter
+from phases import Phase
 
 
 class GamingPhase(Phase):

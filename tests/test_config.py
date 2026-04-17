@@ -2,10 +2,8 @@
 Tests for config loading — deep merge, fallback, and validation.
 """
 
-import pytest
 import sys
 from pathlib import Path
-from unittest.mock import patch, mock_open
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -99,8 +97,8 @@ class TestConfigPhaseAccess:
     """Tests for the Phase.cfg() config accessor."""
 
     def test_cfg_nested_access(self):
+
         from phases import Phase
-        from unittest.mock import MagicMock
 
         # Create a concrete subclass to test the base class method
         class TestPhase(Phase):

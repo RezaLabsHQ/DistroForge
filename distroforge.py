@@ -17,7 +17,6 @@ Built by Hamid at Reza Labs HQ
 
 import argparse
 import sys
-import os
 from pathlib import Path
 
 # Ensure project root is on the path
@@ -26,25 +25,25 @@ sys.path.insert(0, str(Path(__file__).parent))
 import yaml
 from rich.console import Console
 
-from core.detector import detect_system, DistroFamily
+from core.detector import DistroFamily, detect_system
 from core.logger import ForgeLogger
 from core.runner import Runner
 from core.ui import (
-    show_banner,
-    show_system_info,
+    confirm_proceed,
     select_distro,
     select_phase,
-    confirm_proceed,
+    show_banner,
     show_completion,
+    show_system_info,
 )
+from phases.apps import AppsPhase
+from phases.dev import DevPhase
+from phases.gaming import GamingPhase
+from phases.qol import QoLPhase
+from phases.shell import ShellPhase
 
 # Import phases
 from phases.system import SystemPhase
-from phases.shell import ShellPhase
-from phases.dev import DevPhase
-from phases.gaming import GamingPhase
-from phases.apps import AppsPhase
-from phases.qol import QoLPhase
 from phases.verify import VerifyPhase
 
 console = Console()
@@ -78,7 +77,7 @@ def _deep_merge(base: dict, override: dict) -> dict:
     return merged
 
 
-def load_config(config_path: str = None) -> dict:
+def load_config(config_path: str | None = None) -> dict:
     """
     Load configuration with local override support.
 
@@ -95,7 +94,7 @@ def load_config(config_path: str = None) -> dict:
         if not explicit.exists():
             console.print(f"[red]Config file not found: {explicit}[/]")
             sys.exit(1)
-        with open(explicit, "r") as f:
+        with open(explicit) as f:
             config = yaml.safe_load(f) or {}
         console.print(f"  [dim]Config loaded from: {explicit}[/]")
         return config
@@ -104,13 +103,13 @@ def load_config(config_path: str = None) -> dict:
     base_path = project_root / "config.yaml"
     config = {}
     if base_path.exists():
-        with open(base_path, "r") as f:
+        with open(base_path) as f:
             config = yaml.safe_load(f) or {}
 
     # Merge local overrides if present (gitignored personal config)
     local_path = project_root / "config.local.yaml"
     if local_path.exists():
-        with open(local_path, "r") as f:
+        with open(local_path) as f:
             local_config = yaml.safe_load(f) or {}
         config = _deep_merge(config, local_config)
         console.print("  [dim]Config loaded: config.yaml + config.local.yaml (merged)[/]")
@@ -253,10 +252,9 @@ def main():
         selected_phases = select_phase(available)
 
     # ── Confirm ──
-    if not args.yes:
-        if not confirm_proceed(selected_phases, dry_run=args.dry_run):
-            console.print("\n[dim]Cancelled. No changes made.[/]\n")
-            sys.exit(0)
+    if not args.yes and not confirm_proceed(selected_phases, dry_run=args.dry_run):
+        console.print("\n[dim]Cancelled. No changes made.[/]\n")
+        sys.exit(0)
 
     # ── Initialize logger and runner ──
     logger = ForgeLogger(verbose=args.verbose)
@@ -383,8 +381,8 @@ def _print_summary(
     logger: ForgeLogger,
 ):
     """Print a detailed summary table of all phase results."""
-    from rich.table import Table
     from rich import box
+    from rich.table import Table
 
     console.print()
     console.rule("[bold]Setup Summary", style="white")
@@ -405,7 +403,7 @@ def _print_summary(
     failed_phases = 0
     skipped_phases = 0
 
-    for i, (key, name, icon, status, details) in enumerate(phase_results, 1):
+    for i, (_key, name, icon, status, details) in enumerate(phase_results, 1):
         if status in ("passed", "passed (retry)"):
             status_display = f"[green]✓ {status}[/]"
             passed_phases += 1
@@ -413,10 +411,10 @@ def _print_summary(
             status_display = f"[yellow]◐ {status}[/]"
             failed_phases += 1
         elif status == "skipped":
-            status_display = f"[dim]⊘ skipped[/]"
+            status_display = "[dim]⊘ skipped[/]"
             skipped_phases += 1
         elif status == "interrupted":
-            status_display = f"[yellow]⊗ interrupted[/]"
+            status_display = "[yellow]⊗ interrupted[/]"
             failed_phases += 1
         else:
             status_display = f"[red]✗ {status}[/]"
@@ -428,7 +426,7 @@ def _print_summary(
 
     # Command-level stats
     console.print()
-    console.print(f"  [bold]Phases:[/]  ", end="")
+    console.print("  [bold]Phases:[/]  ", end="")
     parts = []
     if passed_phases:
         parts.append(f"[green]{passed_phases} passed[/]")
@@ -438,7 +436,7 @@ def _print_summary(
         parts.append(f"[dim]{skipped_phases} skipped[/]")
     console.print("  ".join(parts))
 
-    console.print(f"  [bold]Steps:[/]   ", end="")
+    console.print("  [bold]Steps:[/]   ", end="")
     parts = []
     if total_commands["passed"]:
         parts.append(f"[green]{total_commands['passed']} passed[/]")

@@ -2,12 +2,14 @@
 Tests for Phase base class — progress tracking, step counting, error collection.
 """
 
-import pytest
 from unittest.mock import MagicMock
-from phases import Phase
-from core.runner import Runner, CommandResult
-from core.logger import ForgeLogger
+
+import pytest
+
 from core.detector import SystemInfo
+from core.logger import ForgeLogger
+from core.runner import Runner
+from phases import Phase
 
 
 class ConcretePhase(Phase):

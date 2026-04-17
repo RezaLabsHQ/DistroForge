@@ -4,7 +4,6 @@ Firewall, SSD trim, swappiness, kernel modules, system tweaks.
 """
 
 from phases import Phase
-from distros import get_adapter
 
 
 class QoLPhase(Phase):
@@ -13,7 +12,6 @@ class QoLPhase(Phase):
     icon = "✨"
 
     def execute(self):
-        adapter = get_adapter(self.system.distro_family.value)
         qol_cfg = self.cfg("qol", default={})
 
         # ── Firewall ──

@@ -3,8 +3,8 @@ DistroForge — System Phase
 System updates, essential packages, GPU driver verification.
 """
 
-from phases import Phase
 from distros import get_adapter
+from phases import Phase
 
 
 class SystemPhase(Phase):

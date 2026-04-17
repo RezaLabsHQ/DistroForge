@@ -3,8 +3,8 @@ DistroForge — Shell Phase
 Installs and configures zsh, Oh My Zsh, Starship prompt, and plugins.
 """
 
-from phases import Phase
 from distros import get_adapter
+from phases import Phase
 
 
 class ShellPhase(Phase):

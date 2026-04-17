@@ -3,8 +3,8 @@ DistroForge — Development Environment Phase
 Installs Node.js, Python, Docker, Git config, GitHub CLI, editors, and language runtimes.
 """
 
-from phases import Phase
 from distros import get_adapter
+from phases import Phase
 
 
 class DevPhase(Phase):
@@ -98,7 +98,6 @@ class DevPhase(Phase):
             return
 
         manager = node_cfg.get("manager", "fnm")
-        version = node_cfg.get("version", "lts")
 
         if manager == "fnm":
             self.step("Installing Node.js via fnm")
@@ -122,7 +121,7 @@ class DevPhase(Phase):
             self.cmd(
                 f'export PATH="{fnm_path}:$PATH" && eval "$(fnm env)" && '
                 f"fnm install --lts && fnm default lts-latest",
-                description=f"Install Node.js LTS via fnm",
+                description="Install Node.js LTS via fnm",
             )
 
             # Install global packages
@@ -173,15 +172,15 @@ class DevPhase(Phase):
             # Add pyenv to zshrc
             zshrc = f"{home}/.zshrc"
             pyenv_lines = [
-                f'export PYENV_ROOT="$HOME/.pyenv"',
-                f'[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"',
-                f'eval "$(pyenv init - zsh)"',
-                f'eval "$(pyenv virtualenv-init -)"',
+                'export PYENV_ROOT="$HOME/.pyenv"',
+                '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"',
+                'eval "$(pyenv init - zsh)"',
+                'eval "$(pyenv virtualenv-init -)"',
             ]
             for line in pyenv_lines:
                 self.cmd(
                     f"""grep -qF 'pyenv' {zshrc} || echo '{line}' >> {zshrc}""",
-                    description=f"Add pyenv config to .zshrc",
+                    description="Add pyenv config to .zshrc",
                 )
 
             # Install Python version
@@ -309,7 +308,7 @@ class DevPhase(Phase):
                 description="Generate ED25519 SSH key",
             )
             self.logger.info(
-                f"SSH key generated. Run 'gh auth login' to upload to GitHub."
+                "SSH key generated. Run 'gh auth login' to upload to GitHub."
             )
         else:
             self.logger.info("SSH key already exists")

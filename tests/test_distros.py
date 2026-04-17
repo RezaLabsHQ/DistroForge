@@ -3,7 +3,8 @@ Tests for distro adapters — package manager command generation.
 """
 
 import pytest
-from distros import UbuntuAdapter, FedoraAdapter, get_adapter
+
+from distros import FedoraAdapter, UbuntuAdapter, get_adapter
 
 
 class TestUbuntuAdapter:

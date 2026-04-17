@@ -3,12 +3,12 @@ DistroForge — Verification Phase
 Runs post-setup health checks to confirm everything was installed correctly.
 """
 
-from phases import Phase
-from core.detector import GpuVendor
-
-from rich.table import Table
 from rich import box
 from rich.console import Console
+from rich.table import Table
+
+from core.detector import GpuVendor
+from phases import Phase
 
 console = Console()
 
