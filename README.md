@@ -19,6 +19,10 @@ DistroForge automates the complete setup of a fresh Linux installation — from 
 
 Built by Hamid at [Reza Labs HQ](https://github.com/rezalabshq)
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/hW98t8bdr3lesAtW.svg)](https://asciinema.org/a/hW98t8bdr3lesAtW)
+
 ## Supported Distros
 
 - [x] Ubuntu-based (Ubuntu, Pop!\_OS, Linux Mint, Elementary OS, Zorin)
