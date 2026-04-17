@@ -115,7 +115,7 @@ def detect_distro() -> tuple[str, str, str, str, DistroFamily, str]:
         pkg_mgr = "pacman"
     else:
         family = DistroFamily.UNKNOWN
-        pkg_mgr = "unkown"
+        pkg_mgr = "unknown"
         
     return distro_id, distro_name, distro_version, distro_codename, family, pkg_mgr
         
@@ -154,7 +154,7 @@ def detect_cpu() -> str:
     for line in cpuinfo.splitlines():
         if "model name" in line.lower():
             return line.split(":", 1)[1].strip()
-    return "Unkonwn CPU"
+    return "Unknown CPU"
 
 
 def detect_ram() -> str:
