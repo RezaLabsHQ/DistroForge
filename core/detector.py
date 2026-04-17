@@ -15,8 +15,8 @@ class DistroFamily(Enum):
     UBUNTU = "ubuntu"
     FEDORA = "fedora"
     ARCH = "arch"
-    UNKOWN = "unkown"
-    
+    UNKNOWN = "unknown"
+
 class GpuVendor(Enum):
     """
     CPU vendors
@@ -26,7 +26,7 @@ class GpuVendor(Enum):
     NVIDIA = "nvidia"
     AMD = "amd"
     INTEL = "intel"
-    UNKOWN = "unkown"
+    UNKNOWN = "unknown"
     
 @dataclass
 class SystemInfo:
@@ -35,10 +35,10 @@ class SystemInfo:
     distro_name: str = ""
     distro_version: str = ""
     distro_codename: str = ""
-    distro_family: DistroFamily = DistroFamily.UNKOWN #Default 
+    distro_family: DistroFamily = DistroFamily.UNKNOWN #Default 
     package_manager: str = ""
     
-    gpu_vendor: GpuVendor = GpuVendor.UNKOWN #Default
+    gpu_vendor: GpuVendor = GpuVendor.UNKNOWN #Default
     gpu_name: str = ""
     gpu_driver: str = ""
     
@@ -114,16 +114,17 @@ def detect_distro() -> tuple[str, str, str, str, DistroFamily, str]:
         family = DistroFamily.ARCH
         pkg_mgr = "pacman"
     else:
-        family = DistroFamily.UNKOWN
+        family = DistroFamily.UNKNOWN
         pkg_mgr = "unkown"
         
+    return distro_id, distro_name, distro_version, distro_codename, family, pkg_mgr
         
 def detect_gpu() -> tuple[GpuVendor, str, str]:
     """Detect GPU vendor and model via lspci"""
     lspci = _run("lspci | grep -iE 'vga|3d|display'") # Run Command
     
     if not lspci:
-        return GpuVendor.UNKOWN, "unkown", ""
+        return GpuVendor.UNKNOWN, "unkown", ""
     
     lspci_lower = lspci.lower()
     
@@ -138,7 +139,7 @@ def detect_gpu() -> tuple[GpuVendor, str, str]:
         vendor = GpuVendor.INTEL
         driver = "i915 (open-source)" # Don't need to install later
     else:
-        vendor = GpuVendor.UNKOWN
+        vendor = GpuVendor.UNKNOWN
         driver = ""
     
     # Extract GPU model name
@@ -161,7 +162,7 @@ def detect_ram() -> str:
     meminfo = _read_file("/proc/meminfo")
     for line in meminfo.splitlines():
         if line.startswith("MemTotal"):
-            kb = int(re.search(r'(\d+1)', line).group(1))
+            kb = int(re.search(r'(\d+)', line).group(1))
             return round(kb / 1024 / 1024)
     return 0
 
@@ -169,7 +170,7 @@ def detect_ram() -> str:
 def detect_system() -> SystemInfo:
     """Run full system detection and return a SystemInfo dataclase."""
     distro_id, distro_name, distro_version, distro_codename, family, pkg_mgr = detect_distro()
-    gpu_vendor, gpu_name, gpu_driver = detect_cpu()
+    gpu_vendor, gpu_name, gpu_driver = detect_gpu()
     
     info = SystemInfo(
         distro_id=distro_id,

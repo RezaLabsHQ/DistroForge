@@ -30,7 +30,7 @@ class Phase(ABC):
         self._results = {"passed": 0, "failed": 0, "skipped": 0}
         self._step_number = 0
         self._total_step = 0
-        self._faild_steps: list[tuple[str, str]] = [] # (description, error)
+        self._failed_steps: list[tuple[str, str]] = [] # (description, error)
         
     @abstractmethod
     def execute(self):
