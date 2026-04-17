@@ -25,7 +25,33 @@ Built by Hamid at [Reza Labs HQ](https://github.com/rezalabshq)
 - [x] Fedora-based (Fedora, Nobara) — _adapter ready, testing in progress_
 - [ ] Arch-based (Arch, Manjaro, EndeavourOS) — _planned_
 
-## Quick Start
+## Installation
+
+### Recommended — one-liner
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/rezalabshq/DistroForge/main/install.sh)
+```
+
+This clones the repo to `~/.local/share/distroforge`, creates an isolated Python environment, installs dependencies, and drops a `distroforge` launcher into `~/.local/bin`. Your shell config is updated automatically if needed.
+
+After install, open a new terminal (or `source ~/.zshrc`) and run:
+
+```bash
+distroforge --list
+```
+
+### Update
+
+Re-run the same one-liner — it pulls the latest changes and rebuilds the environment.
+
+### Alternative — pipx
+
+```bash
+pipx install git+https://github.com/rezalabshq/DistroForge.git
+```
+
+### Alternative — manual clone
 
 ```bash
 git clone https://github.com/rezalabshq/DistroForge.git
@@ -37,15 +63,15 @@ python3 distroforge.py
 ## Usage
 
 ```bash
-python3 distroforge.py                            # Interactive mode
-python3 distroforge.py --phases system,shell,dev  # Specific phases
-python3 distroforge.py --dry-run                  # Preview without executing
-python3 distroforge.py --verbose                  # Show full command output
-python3 distroforge.py --yes                      # Skip confirmations
-python3 distroforge.py --config my-setup.yaml     # Custom config
-python3 distroforge.py --distro fedora            # Override detection
-python3 distroforge.py --list                     # List phases
-python3 distroforge.py --phases verify            # Health check only
+distroforge                            # Interactive mode (choose phases)
+distroforge --list                     # Show all available phases
+distroforge --phases system,shell,dev  # Run specific phases
+distroforge --dry-run --yes            # Preview everything without changing anything
+distroforge --phases verify            # Health check — see what's installed
+distroforge --verbose                  # Show full command output
+distroforge --yes                      # Skip confirmation prompts
+distroforge --config my-setup.yaml    # Use a custom config file
+distroforge --distro fedora            # Override distro detection
 ```
 
 ## Available Phases
@@ -110,11 +136,11 @@ distro-forge/
 │   └── verify.py           # Post-setup verification & health check
 ├── distros/
 │   └── __init__.py         # Distro adapters (Ubuntu apt, Fedora dnf)
-└── tests/                  # 69 unit tests
+└── tests/                  # 60 unit tests
     ├── test_config.py
     ├── test_detector.py
     ├── test_distros.py
-    └── test_runner.py
+    └── test_phases.py
 ```
 
 ## Development
@@ -147,12 +173,13 @@ ruff format .                                    # Format
 - **Logged** — Rich terminal output + file logs in `~/.distroforge/logs/`
 - **Dry-run** — preview every command with `--dry-run`
 - **Modular** — phases are independent, distro adapters are swappable
-- **Tested** — 69 unit tests covering core modules
+- **Tested** — 60 unit tests covering core modules
 
 ## Requirements
 
-- Python 3.10+
 - Linux (tested on Pop!\_OS 24.04, Ubuntu 24.04)
+- Python 3.10+ (`sudo apt install python3` if missing)
+- `git` (`sudo apt install git` if missing)
 - sudo access
 
 ## License
