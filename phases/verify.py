@@ -98,7 +98,7 @@ class VerifyPhase(Phase):
             ("dotnet", ".NET"),
         ]
         for binary, name in lang_checks:
-            ver = self.runner.get_version(binary)
+            ver = self._get_tool_version_with_env(binary)
             if ver:
                 checks.append((name, ver, True))
             elif self.cfg("dev", "languages", binary.replace("rustc", "rust"), default=False):
@@ -168,25 +168,41 @@ class VerifyPhase(Phase):
 
     def _get_tool_version_with_env(self, tool: str) -> str:
         """
-        Get version of tools that may require sourced shell environments
-        (fnm, pyenv, etc.) — try direct first, then with common env paths.
+        Get version of a tool, trying multiple PATH sources:
+        standard PATH → cargo → fnm → pyenv → login shell.
         """
-        # Try direct first
+        import os
+
+        home = self.system.home_dir
+
+        # 1. Direct (standard PATH)
         ver = self.runner.get_version(tool)
         if ver:
             return ver
 
-        # Try with fnm env (for node/npm)
-        home = self.system.home_dir
+        # 2. python → also try python3
+        if tool == "python":
+            ver = self.runner.get_version("python3")
+            if ver:
+                return ver
+
+        # 3. Cargo (~/.cargo/bin) — Rust, custom tools
+        cargo_bin = f"{home}/.cargo/bin/{tool}"
+        if os.path.isfile(cargo_bin) and os.access(cargo_bin, os.X_OK):
+            result = self.runner.run(f"{cargo_bin} --version 2>/dev/null | head -1", check=False)
+            if result.success and result.stdout:
+                return result.stdout.strip()
+
+        # 4. fnm (Node.js / npm)
         fnm_result = self.runner.run(
-            f'export PATH="{home}/.local/share/fnm:{home}/.fnm:$PATH" && '
+            f'export PATH="{home}/.local/share/fnm:{home}/.fnm:{home}/.cargo/bin:$PATH" && '
             f'eval "$(fnm env 2>/dev/null)" && {tool} --version 2>/dev/null | head -1',
             check=False,
         )
         if fnm_result.success and fnm_result.stdout:
             return fnm_result.stdout.strip()
 
-        # Try with pyenv (for python)
+        # 5. pyenv
         pyenv_result = self.runner.run(
             f'export PYENV_ROOT="{home}/.pyenv" && '
             f'export PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH" && '
@@ -195,6 +211,14 @@ class VerifyPhase(Phase):
         )
         if pyenv_result.success and pyenv_result.stdout:
             return pyenv_result.stdout.strip()
+
+        # 6. Login shell — catches anything sourced in .bashrc / .zshrc
+        login_result = self.runner.run(
+            f'bash -lc "{tool} --version 2>/dev/null | head -1" 2>/dev/null',
+            check=False,
+        )
+        if login_result.success and login_result.stdout:
+            return login_result.stdout.strip()
 
         return ""
 

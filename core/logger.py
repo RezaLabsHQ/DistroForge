@@ -38,7 +38,7 @@ class ForgeLogger:
             fh.setLevel(logging.DEBUG)
             fmt = logging.Formatter("%(asctime)s | %(levelname)-8s | %(message)s")
             fh.setFormatter(fmt)
-            self.file_logger.addFilter(fh)
+            self.file_logger.addHandler(fh)
 
         self.log_file = log_file
 
@@ -65,7 +65,7 @@ class ForgeLogger:
 
     def success(self, message: str, duration: float = 0.0):
         """Log a successful operation."""
-        dur = f" [dim]({duration:.f}s)[/]" if duration > 0 else ""
+        dur = f" [dim]({duration:.1f}s)[/]" if duration > 0 else ""
         console.print(f" [bold green]✓[/] {message}{dur}") # Corrent Operation symbol (tick) ✓
         self.file_logger.info(f" ✓ {message} ({duration:.1f}s)")
 

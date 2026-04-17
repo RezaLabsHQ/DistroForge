@@ -57,7 +57,7 @@ def show_system_info(info: SystemInfo):
     }.get(info.distro_family, "white")
 
     table.add_row("Distro", f"[{distro_colour}]{info.distro_name} {info.distro_version}[/]")
-    table.add_row("Family" f"[{distro_colour}]{info.distro_family.value.title()}[/]-based")
+    table.add_row("Family", f"[{distro_colour}]{info.distro_family.value.title()}[/]-based")
     table.add_row("Package Manger", info.package_manager)
     table.add_row("", "")
 

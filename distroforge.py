@@ -99,8 +99,14 @@ def load_config(config_path: str | None = None) -> dict:
         console.print(f"  [dim]Config loaded from: {explicit}[/]")
         return config
 
-    # Load base config (the committed template)
+    # Resolve base config — check multiple locations so installed and dev both work:
+    #   1. Next to this file (git clone / install.sh layout)
+    #   2. ~/.config/distroforge/config.yaml (XDG user config)
+    xdg_config = Path.home() / ".config" / "distroforge" / "config.yaml"
     base_path = project_root / "config.yaml"
+    if not base_path.exists() and xdg_config.exists():
+        base_path = xdg_config
+
     config = {}
     if base_path.exists():
         with open(base_path) as f:
@@ -114,9 +120,9 @@ def load_config(config_path: str | None = None) -> dict:
         config = _deep_merge(config, local_config)
         console.print("  [dim]Config loaded: config.yaml + config.local.yaml (merged)[/]")
     elif base_path.exists():
-        console.print("  [dim]Config loaded: config.yaml[/]")
+        console.print(f"  [dim]Config loaded: {base_path}[/]")
     else:
-        console.print("[yellow]No config files found. Using defaults.[/]")
+        console.print("  [dim]No config file found — using built-in defaults.[/]")
 
     return config
 

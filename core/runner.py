@@ -183,9 +183,31 @@ class Runner:
         return results
 
     def check_installed(self, program: str) -> bool:
-        """Check if a program is available on PATH."""
-        result = self.run(f"which {program}", description=f"Checking for {program}", check=False)
-        return result.success
+        """Check if a program is available on PATH or common non-standard locations."""
+        result = self.run(
+            f"command -v {program} 2>/dev/null",
+            description=f"Checking for {program}",
+            check=False,
+        )
+        if result.success and result.stdout.strip():
+            return True
+
+        # Fallback: check paths that tools like cargo, fnm, snap, and games use
+        import os
+
+        home = os.environ.get("HOME", "")
+        extra_paths = [
+            f"{home}/.local/bin/{program}",
+            f"{home}/.cargo/bin/{program}",
+            f"/snap/bin/{program}",
+            f"/usr/games/{program}",
+            f"/usr/local/go/bin/{program}",
+        ]
+        for path in extra_paths:
+            if path and os.path.isfile(path) and os.access(path, os.X_OK):
+                return True
+
+        return False
 
     def get_version(self, program: str, flag: str = "--version") -> str:
         """
