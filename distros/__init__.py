@@ -12,7 +12,8 @@ class DistroAdapter(ABC):
     def update(self) -> str:
         """Return the system update command."""
         pass
-        @abstractmethod
+    
+    @abstractmethod
     def install(self, *packages: str) -> str:
         """Return the install command for given packages."""
         pass
