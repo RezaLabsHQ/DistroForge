@@ -1,0 +1,108 @@
+# DistroForge .gitignore
+# ═══════════════════════════════════════════════════
+# Python CLI project 
+# Created by Hamid Alami at RezaLabsHQ
+# ═══════════════════════════════════════════════════
+
+# ── Python ─────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ── Virtual Environments ──────────────────────────
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# ── Distribution / Packaging ─────────────────────
+*.tar.gz
+*.whl
+*.deb
+*.rpm
+MANIFEST
+
+# ── Testing & Coverage ───────────────────────────
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# ── Type Checking ────────────────────────────────
+.mypy_cache/
+.pytype/
+.pyre/
+
+# ── Linting ──────────────────────────────────────
+.ruff_cache/
+
+# ── IDE / Editors ────────────────────────────────
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# ── OS Generated ─────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── Logs ─────────────────────────────────────────
+*.log
+logs/
+
+# ── DistroForge Specific ─────────────────────────
+# User config with personal data (email, SSH key comments, etc.)
+# The repo ships config.yaml as a TEMPLATE — users copy and edit
+config.local.yaml
+
+# Runtime logs generated during setup
+.distroforge/
+
+# Temporary files created during execution
+*.tmp
+*.bak
+*.orig
+
+# ── Secrets & Credentials ────────────────────────
+# Never commit these under any circumstance
+*.pem
+*.key
+*.cert
+*.p12
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
