@@ -131,7 +131,7 @@ def detect_gpu() -> tuple[GpuVendor, str, str]:
     if "nvidia" in lspci_lower:
         vendor = GpuVendor.NVIDIA
         # Try to get driver version
-        driver = _run("nvidia-smi --query-gpu=driver_version --formate=csv,noheader 2>/dev/null") # Run command to check nvidia driver first
+        driver = _run("nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null") # Run command to check nvidia driver first
     elif "amd" in lspci_lower or "radeon" in lspci_lower:
         vendor = GpuVendor.AMD
         driver = "mesa (open-source)" # Don't need to install later

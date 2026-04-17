@@ -246,6 +246,9 @@ def main():
             console.print(f"[red]Unknown phases: {', '.join(invalid)}[/]")
             console.print(f"[dim]Valid phases: {', '.join(valid_keys)}[/]")
             sys.exit(1)
+    elif args.yes:
+        # Non-interactive: run all phases
+        selected_phases = [key for key, _, _ in PHASE_REGISTRY]
     else:
         # Interactive selection
         available = [(key, desc) for key, desc, _ in PHASE_REGISTRY]
