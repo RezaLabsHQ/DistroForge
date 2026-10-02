@@ -20,7 +20,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+import yaml
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 from rich.text import Text
 
@@ -29,6 +31,7 @@ from distroforge.catalog.loader import load_catalog
 from distroforge.core import privilege
 from distroforge.core.executor import Executor, Result
 from distroforge.core.system import Family
+from distroforge.core.validate import ValidationError
 from distroforge.engine.ops import RunContext
 from distroforge.engine.planner import Plan, PlanError, Step
 from distroforge.engine.profiles import Profile, load_profile_file, load_profiles
@@ -136,7 +139,7 @@ def cmd_list(services: Services, category: str | None, with_state: bool, ids_onl
             method = resolver.choose(item)
             supported = resolver.supported(item)
             label = method.label if method else ("action" if supported else "[dim]n/a[/]")
-            row = [item.id, item.name, cid, label]
+            row = [item.id, escape(item.name), cid, label]
             if with_state:
                 row.append("✓" if supported and resolver.is_installed(item) else "")
             table.add_row(*row)
@@ -177,7 +180,7 @@ def cmd_doctor(services: Services) -> int:
     for key, value in rows:
         console.print(f"[bold]{key:<14}[/] {value}")
     for problem in services.catalog.errors:
-        console.print(f"  [yellow]⚠[/] {problem}")
+        console.print(f"  [yellow]⚠[/] {escape(problem)}")
     if s.family is Family.UNKNOWN:
         console.print(
             "\n[yellow]Unknown distro family.[/] Only Flatpak items will be offered; "
@@ -215,7 +218,7 @@ def cmd_validate(files: list[Path]) -> int:
     # Built-in data is validated by the test suite, so every problem here is in the given files.
     if catalog.errors:
         for problem in catalog.errors:
-            console.print(f"[red]✗[/] {problem}")
+            console.print(f"[red]✗[/] {escape(problem)}")
         return EXIT_FAILED
     user_items = [i for i in catalog.items.values() if i.source.startswith("user")]
     console.print(f"[green]✓[/] {len(files)} file(s) valid — {len(user_items)} item(s)")
@@ -228,7 +231,11 @@ def _selection(services: Services, args: argparse.Namespace) -> dict[str, str | 
         candidate = Path(args.profile)
         profile: Profile | None
         if candidate.suffix in (".yaml", ".yml") and candidate.exists():
-            profile = load_profile_file(candidate)
+            try:
+                profile = load_profile_file(candidate)
+            except (OSError, yaml.YAMLError, ValidationError) as exc:
+                err.print(f"[red]Invalid profile file[/] {candidate}: {exc}")
+                return None
         else:
             profile = next(
                 (p for p in load_profiles(services.paths.profiles_dir) if p.id == args.profile), None
@@ -256,18 +263,18 @@ def _selection(services: Services, args: argparse.Namespace) -> dict[str, str | 
 
 def _print_plan(plan: Plan) -> None:
     for item, reason in plan.skipped:
-        console.print(f"[green]✓[/] {item.name} [dim]— {reason}[/]")
+        console.print(f"[green]✓[/] {escape(item.name)} [dim]— {escape(reason)}[/]")
     for item, reason in plan.unsupported:
-        console.print(f"[yellow]⊘[/] {item.name} [dim]— {reason}[/]")
+        console.print(f"[yellow]⊘[/] {escape(item.name)} [dim]— {escape(reason)}[/]")
     for index, step in enumerate(plan.steps, 1):
         console.print(
-            f"\n[bold]{index:>2}. {step.title}[/]" + ("  [yellow]sudo[/]" if step.needs_root else "")
+            f"\n[bold]{index:>2}. {escape(step.title)}[/]" + ("  [yellow]sudo[/]" if step.needs_root else "")
         )
         for op in step.ops:
             for line in op.preview():
                 console.print(Text(f"      {line}", style="dim" if line.lstrip().startswith("#") else ""))
     for warning in plan.warnings:
-        console.print(f"[yellow]⚠ {warning}[/]")
+        console.print(f"[yellow]⚠ {escape(warning)}[/]")
 
 
 def cmd_apply(services: Services, args: argparse.Namespace) -> int:
@@ -310,14 +317,13 @@ def cmd_apply(services: Services, args: argparse.Namespace) -> int:
 
     def on_event(event: Event) -> None:
         if isinstance(event, StepStarted):
-            console.print(f"[bold cyan]▶[/] [{event.index}/{event.total}] {event.step.title}")
+            console.print(f"[bold cyan]▶[/] [{event.index}/{event.total}] {escape(event.step.title)}")
         elif isinstance(event, OutputLine) and (args.verbose or args.dry_run):
             console.print(Text(f"    {event.line}", style="dim"))
         elif isinstance(event, ItemChanged) and event.status in (ItemStatus.FAILED, ItemStatus.BLOCKED):
             colour = "red" if event.status is ItemStatus.FAILED else "yellow"
-            console.print(
-                f"  [{colour}]{event.status.value}:[/] {names.get(event.item_id)} — {event.message}"
-            )
+            name = escape(str(names.get(event.item_id)))
+            console.print(f"  [{colour}]{event.status.value}:[/] {name} — {escape(event.message)}")
 
     async def on_failure(step: Step, result: Result) -> Decision:
         if result.output_tail and not args.verbose:

@@ -16,9 +16,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from distroforge.core.executor import Command, Executor, OutputCallback, Result, Status
+from distroforge.core.logging import get_logger
 from distroforge.core.net import DownloadError, download
 from distroforge.core.system import SystemInfo
 from distroforge.core.validate import check_path_within
+
+log = get_logger("ops")
 
 # The only locations DistroForge will ever write as root.
 ROOT_WRITE_ROOTS = (
@@ -69,10 +72,14 @@ class Operation(ABC):
 
 
 class CommandOp(Operation):
-    def __init__(self, title: str, command: Command, warning: str = "") -> None:
+    def __init__(
+        self, title: str, command: Command, warning: str = "", *, needs_root: bool | None = None
+    ) -> None:
         self.title = title
         self.command = command
-        self.needs_root = command.root
+        # Some tools run as the user but call sudo themselves (AUR helpers): they still
+        # need credentials validated up front, or their prompt would hide behind the UI.
+        self.needs_root = command.root if needs_root is None else needs_root
         self.warning = warning
 
     def preview(self) -> list[str]:
@@ -112,7 +119,8 @@ class TaskOp(Operation):
             return await self._fn(ctx)
         except DownloadError as exc:
             return Result.failed(str(exc))
-        except (OSError, ValueError) as exc:
+        except Exception as exc:  # e.g. corrupt archive: fail this step, not the whole run
+            log.exception("Task '%s' failed", self.title)
             return Result.failed(f"{type(exc).__name__}: {exc}")
 
     def __repr__(self) -> str:
@@ -129,6 +137,7 @@ def install_root_file(
     content: str | None = None,
     url: str | None = None,
     mode: str = "0644",
+    warning: str = "",
 ) -> TaskOp:
     """Write ``content`` (or the file at ``url``) to ``dest`` as root.
 
@@ -154,7 +163,7 @@ def install_root_file(
     preview = [f"# {source} →", f"sudo install -D -m {mode} -o root -g root <staged> {dest}"]
     if content is not None:
         preview += [f"    {line}" for line in content.splitlines()]
-    return TaskOp(title, apply, preview, needs_root=True)
+    return TaskOp(title, apply, preview, needs_root=True, warning=warning)
 
 
 def noop(title: str, message: str) -> TaskOp:

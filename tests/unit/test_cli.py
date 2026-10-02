@@ -168,3 +168,23 @@ def test_list_ids_is_machine_readable(services: Services, capsys: pytest.Capture
     ids = out.split()
     assert set(ids) == set(services.catalog.items)
     assert "python-build-deps" in ids
+
+
+@pytest.mark.parametrize("content", ["items: foo\n", "items: [unclosed\n", "- just a list\n"])
+def test_bad_profile_file_is_a_usage_error(
+    services: Services, capsys: pytest.CaptureFixture[str], tmp_path: Path, content: str
+) -> None:
+    bad = tmp_path / "bad.yaml"
+    bad.write_text(content)
+    code, out = run(capsys, "apply", "--profile", str(bad), "--dry-run")
+    assert code == cli.EXIT_USAGE and "Invalid profile file" in out
+
+
+def test_catalog_text_cannot_inject_markup(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    sneaky = tmp_path / "sneaky.yaml"
+    sneaky.write_text(
+        "items:\n  - {id: x, name: '[red]Fake[/red] [link=https://evil]', category: nope, install: [{apt: x}]}\n"
+    )
+    code, out = run(capsys, "validate", str(sneaky))
+    assert code == cli.EXIT_FAILED
+    assert "[link=https://evil]" in out or "unknown category" in out

@@ -16,6 +16,11 @@ APT_SOURCES = "/etc/apt/sources.list.d"
 YUM_REPOS = "/etc/yum.repos.d"
 
 
+def _repo_warning(url: str) -> str:
+    host = url.split("/")[2]
+    return f"Adds a third-party package repository from {host}; its packages install with root rights."
+
+
 class AptRepo(Action):
     """Add a signed third-party apt repository (key in /etc/apt/keyrings, ``signed-by``)."""
 
@@ -52,7 +57,12 @@ class AptRepo(Action):
         )
         return [
             install_root_file(f"Install signing key for {params['name']}", keyring, url=params["key_url"]),
-            install_root_file(f"Add {params['name']} repository", sources, content=line + "\n"),
+            install_root_file(
+                f"Add {params['name']} repository",
+                sources,
+                content=line + "\n",
+                warning=_repo_warning(params["url"]),
+            ),
             CommandOp("Refresh APT package lists", Command(("apt-get", "update"), root=True)),
         ]
 
@@ -90,7 +100,14 @@ class DnfRepo(Action):
                 "",
             ]
         )
-        return [install_root_file(f"Add {params['name']} repository", self._path(params), content=content)]
+        return [
+            install_root_file(
+                f"Add {params['name']} repository",
+                self._path(params),
+                content=content,
+                warning=_repo_warning(params["baseurl"]),
+            )
+        ]
 
 
 _FEDORA_IDS = frozenset({"fedora", "nobara", "ultramarine", "bazzite"})

@@ -36,7 +36,9 @@ def test_system_upgrade_replaces_refresh_and_runs_first(catalog: Catalog, make_e
 
 
 def test_flatpak_method_pulls_in_flatpak_first(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
-    plan = Planner(catalog, make_env(Family.FEDORA)).build({"spotify": None})
+    env = make_env(Family.FEDORA)
+    env.backends.flatpak.ready = lambda: False  # flatpak not installed yet
+    plan = Planner(catalog, env).build({"spotify": None})
     ids = [ip.item.id for ip in plan.items]
     assert ids == ["flatpak", "spotify"]
     assert step_index(plan, "flatpak", "post") < step_index(plan, "spotify", "install")
@@ -136,7 +138,9 @@ def test_unknown_item(catalog: Catalog, make_env) -> None:  # type: ignore[no-un
 
 
 def test_dependents_of(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
-    plan = Planner(catalog, make_env(Family.FEDORA)).build({"spotify": None, "discord": None})
+    env = make_env(Family.FEDORA)
+    env.backends.flatpak.ready = lambda: False
+    plan = Planner(catalog, env).build({"spotify": None, "discord": None})
     assert plan.dependents_of("flatpak") == {"spotify", "discord"}
 
 
@@ -151,3 +155,36 @@ def test_unsupported_item_does_not_pull_in_dependencies(catalog: Catalog, make_e
     plan = Planner(catalog, make_env(Family.DEBIAN)).build({"ghostty": None})
     assert [i.id for i, _ in plan.unsupported] == ["ghostty"]
     assert plan.items == []
+
+
+def test_existing_flatpak_used_without_bootstrap(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
+    plan = Planner(catalog, make_env(Family.FEDORA)).build({"spotify": None})
+    assert [ip.item.id for ip in plan.items] == ["spotify"]
+    previews = [line for s in plan.steps for op in s.ops for line in op.preview()]
+    assert any("remote-add --user --if-not-exists flathub" in p for p in previews)
+
+
+def test_unknown_family_with_flatpak_installs_flatpaks(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
+    plan = Planner(catalog, make_env(Family.UNKNOWN)).build({"vlc": None, "git": None})
+    assert [ip.item.id for ip in plan.items] == ["vlc"]
+    assert [i.id for i, _ in plan.unsupported] == ["git"]
+
+
+def test_unknown_family_without_flatpak_reports_unsupported(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
+    env = make_env(Family.UNKNOWN)
+    env.backends.flatpak.ready = lambda: False
+    plan = Planner(catalog, env).build({"vlc": None})
+    assert plan.items == [] and [i.id for i, _ in plan.unsupported] == ["vlc"]
+
+
+def test_aur_plans_require_sudo_credentials(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
+    env = make_env(Family.ARCH, aur_helper="paru")
+    plan = Planner(catalog, env).build({"vscodium": "aur"})
+    assert plan.needs_root  # paru calls sudo internally; credentials must be validated first
+
+
+def test_third_party_repositories_are_flagged(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
+    plan = Planner(catalog, make_env(Family.DEBIAN)).build({"docker": None})
+    assert any("third-party package repository from download.docker.com" in w for w in plan.warnings)
+    fedora = Planner(catalog, make_env(Family.FEDORA)).build({"vscode": None})
+    assert any("packages.microsoft.com" in w for w in fedora.warnings)

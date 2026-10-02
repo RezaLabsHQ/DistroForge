@@ -68,3 +68,15 @@ def test_rc_file_locations(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
     assert shellrc.rc_file("zsh", tmp_path, "x") == tmp_path / "z" / ".zshrc"
     monkeypatch.setenv("ZDOTDIR", "relative")
     assert shellrc.rc_file("zsh", tmp_path, "x") == tmp_path / ".zshrc"
+
+
+def test_symlinked_rc_file_stays_a_symlink(tmp_path: Path) -> None:
+    dotfiles = tmp_path / "dotfiles"
+    dotfiles.mkdir()
+    target = dotfiles / "zshrc"
+    target.write_text("# managed by stow\n")
+    link = tmp_path / ".zshrc"
+    link.symlink_to(target)
+    assert shellrc.apply_block(link, "starship", ["eval x"])
+    assert link.is_symlink()
+    assert "distroforge:starship" in target.read_text()

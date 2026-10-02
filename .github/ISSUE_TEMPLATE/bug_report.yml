@@ -1,0 +1,27 @@
+name: Bug report
+description: Something didn't install or the app misbehaved
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting! Please paste the output of `distroforge doctor` — it tells us your distro, family and versions.
+  - type: textarea
+    id: doctor
+    attributes:
+      label: distroforge doctor
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Which items/profile did you select, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Relevant log lines
+      description: From ~/.local/state/distroforge/logs/ (secrets are redacted automatically).
+      render: text

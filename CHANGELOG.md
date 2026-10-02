@@ -18,7 +18,7 @@ DistroForge is now a full application rather than a set of setup scripts.
 ### Security
 
 - Commands are argument vectors only; `shell=True` is banned and tested for.
-- Strict validation of all catalog and settings data, HTTPS-only downloads, signed repositories, confined root writes, `sudo -n` with up-front authentication, and explicit acknowledgement before running remote scripts. See `SECURITY.md`.
+- Strict validation of all catalog and settings data, HTTPS-only downloads, signed repositories, confined root writes, `sudo -n` with up-front authentication, and explicit acknowledgement before running remote scripts, AUR builds or adding third-party repositories. See `SECURITY.md`.
 
 ### Fixed (from 1.x)
 

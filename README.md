@@ -6,9 +6,13 @@
 
 **Forge your Linux setup.** A full-screen terminal app for setting up a fresh install on any major distro: pick exactly the apps and tweaks you want, review every command, then let it run.
 
+[![Release](https://img.shields.io/github/v/release/RezaLabsHQ/DistroForge?color=fab387&label=release)](https://github.com/RezaLabsHQ/DistroForge/releases/latest)
 [![CI](https://github.com/RezaLabsHQ/DistroForge/actions/workflows/ci.yml/badge.svg)](https://github.com/RezaLabsHQ/DistroForge/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.10%E2%80%933.14-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/python-3.10%E2%80%933.14-89b4fa)
+![Platform](https://img.shields.io/badge/platform-Linux-a6e3a1)
+[![License: MIT](https://img.shields.io/badge/license-MIT-f9e2af)](LICENSE)
+
+[Install](#install) · [Using it](#using-it) · [Add your own apps](#add-your-own-apps) · [How it works](#how-it-works) · [FAQ](#faq) · [Contributing](CONTRIBUTING.md)
 
 <img src="docs/screenshots/main.svg" alt="DistroForge main screen in the Catppuccin Mocha theme" width="100%">
 
@@ -21,11 +25,22 @@ Chris Titus's WinUtil showed how pleasant a "pick what you want, click install" 
 - **You choose everything.** Nothing is pre-selected. Browse about 160 apps and tweaks by category, search, select, and switch each item's install method (distro package, Flatpak, AUR or upstream installer).
 - **One tool, many distros.** Debian/Ubuntu (apt), Fedora/RHEL (dnf) and Arch (pacman, plus AUR via paru/yay), with Flatpak as the universal fallback. Derivatives such as Mint, Pop!\_OS, Zorin, Nobara, Manjaro, EndeavourOS and CachyOS are detected automatically.
 - **See before you run.** The review screen lists every step and the exact command it will execute. Dry-run is one key away.
-- **Safe by construction.** Commands are never passed through a shell, all catalog data is validated, root is used only through `sudo` for the specific steps that need it, and remote install scripts must be acknowledged explicitly.
+- **Safe by construction.** Commands are never passed through a shell, all catalog data is validated, and root is used only through `sudo` for the specific steps that need it. Remote install scripts, AUR packages and third-party repositories are flagged and must be acknowledged explicitly.
 - **Re-runnable.** Already-installed items are detected and skipped, and partially configured items only get their missing parts. Shell config edits are managed blocks, so running it twice never duplicates anything.
 - **Extensible.** Add your own apps in a few lines of YAML, and save or share selections as profiles.
 - **Looks good.** Catppuccin (Mocha, Macchiato, Frappé, Latte), Forge, Tokyo Night, Nord, Gruvbox, Dracula, Rosé Pine and more. Press <kbd>t</kbd> to cycle.
 - **A real app.** It installs with an app-menu entry and icon, and opens in your terminal like btop.
+
+## Supported distributions
+
+| Family          | Package manager           | Tested on                     | Also detected                                                  |
+| --------------- | ------------------------- | ----------------------------- | -------------------------------------------------------------- |
+| Debian / Ubuntu | apt                       | Ubuntu 24.04, Debian 12       | Linux Mint, Pop!\_OS, Zorin, elementary, KDE neon, Kali        |
+| Fedora / RHEL   | dnf                       | Fedora 44                     | Nobara, Ultramarine, Bazzite, RHEL, Rocky, AlmaLinux           |
+| Arch            | pacman + AUR (paru / yay) | Arch Linux                    | Manjaro, EndeavourOS, CachyOS, Garuda, Artix                   |
+| Anything else   | Flatpak                   | —                             | Flatpak apps work everywhere `flatpak` is installed            |
+
+Every release runs real installs inside Ubuntu, Debian, Fedora and Arch containers in CI.
 
 ## Install
 
@@ -54,7 +69,7 @@ Launch **DistroForge** from your app menu, or run `distroforge`.
 | Key                                     | Action                                                 |
 | --------------------------------------- | ------------------------------------------------------ |
 | <kbd>Space</kbd> / <kbd>Enter</kbd>     | select or deselect an item                             |
-| <kbd>m</kbd>                            | cycle the install method (native, Flatpak, AUR, script) |
+| <kbd>m</kbd>                            | cycle the install method (native/Flatpak/AUR/script)   |
 | <kbd>/</kbd>                            | search the whole catalog                               |
 | <kbd>a</kbd> / <kbd>n</kbd>             | select all / none in the current list                  |
 | <kbd>r</kbd>                            | review the plan, then install or dry-run               |
@@ -90,7 +105,7 @@ Profiles are starting points, not presets you're locked into. Load one, then add
 | Profile      | Contents                                                                   |
 | ------------ | -------------------------------------------------------------------------- |
 | `essentials` | core CLI tools, Flatpak + Flathub, full upgrade                            |
-| `developer`  | zsh + Starship, git identity, SSH key, gh, Docker, VS Code, Python/Node/Rust/Go |
+| `developer`  | zsh, Starship, gh, Docker, VS Code, Python/Node/Rust/Go, SSH key       |
 | `gaming`     | Steam, Lutris, Heroic, ProtonUp-Qt, GameMode, MangoHud, Discord            |
 | `creator`    | OBS, Kdenlive, Audacity, GIMP, Inkscape, Krita, Blender                    |
 | `hardening`  | full upgrade, firewall, Fail2ban, KeePassXC                                |
@@ -152,7 +167,8 @@ Available actions:
 
 | Action           | Purpose                                                    |
 | ---------------- | ---------------------------------------------------------- |
-| `apt_repo`, `dnf_repo` | signed third-party repositories                      |
+| `apt_repo`       | signed third-party apt repository (flagged for review)     |
+| `dnf_repo`       | signed third-party dnf repository (flagged for review)     |
 | `rpmfusion`      | enable RPM Fusion (Fedora)                                 |
 | `flathub`        | add the Flathub remote                                     |
 | `service`        | enable a systemd unit                                      |
@@ -198,6 +214,22 @@ distroforge tui --dry-run                # try the app without touching your sys
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Adding an app is usually a five-line YAML change.
 
+## FAQ
+
+**Does it remove anything?** No. DistroForge only installs and configures. Uninstalling DistroForge leaves the software it installed in place.
+
+**Is it safe to run twice?** Yes. Installed items are skipped, configuration is idempotent, and shell edits are named blocks that are replaced rather than appended.
+
+**What does it need root for?** Package installs, repositories, services and system settings, all through `sudo` for those specific commands only. Flatpaks install per-user by default and need no root. Change that in Settings.
+
+**How is this different from Chris Titus's [linutil](https://github.com/ChrisTitusTech/linutil)?** linutil runs a curated set of shell scripts. DistroForge is built around a declarative, validated catalog: you choose individual apps and the install method for each, see the exact commands before anything runs, extend it with YAML instead of scripts, and save shareable profiles.
+
+**My distro isn't listed.** Flatpak items still work. Run `distroforge doctor`, and if your distro uses apt, dnf or pacman, use `--distro debian|fedora|arch`. Adding a package manager is one class: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Credits
+
+Built with [Textual](https://github.com/Textualize/textual) and [Rich](https://github.com/Textualize/rich). Themes include [Catppuccin](https://catppuccin.com). Fonts come from [Nerd Fonts](https://www.nerdfonts.com). The idea is inspired by Chris Titus's [WinUtil](https://github.com/ChrisTitusTech/winutil).
+
 ## License
 
-MIT © Hamid Alami, Reza Labs HQ
+[MIT](LICENSE) © Hamid Alami, [Reza Labs HQ](https://github.com/RezaLabsHQ)

@@ -5,6 +5,7 @@ set -euo pipefail
 
 say() { printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
 
+# shellcheck source=/dev/null
 say "Bootstrapping $(. /etc/os-release; echo "$PRETTY_NAME")"
 if command -v apt-get >/dev/null; then
     export DEBIAN_FRONTEND=noninteractive

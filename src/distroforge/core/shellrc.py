@@ -81,7 +81,13 @@ def rc_file(shell: str, home: Path, block_id: str) -> Path:
 
 
 def atomic_write(path: Path, content: str) -> None:
-    """Write via a temp file + rename, preserving the existing mode."""
+    """Write via a temp file + rename, preserving the existing mode.
+
+    Symlinks (e.g. dotfiles managed by stow/chezmoi) are followed so the link
+    itself is never replaced by a regular file.
+    """
+    if path.is_symlink():
+        path = path.resolve()
     path.parent.mkdir(parents=True, exist_ok=True)
     mode = path.stat().st_mode & 0o777 if path.exists() else 0o644
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")

@@ -205,3 +205,29 @@ async def test_sysctl_live_apply_skips_when_tool_missing(
     assert live.needs_root and "sysctl -p" in live.preview()[0]
     result = await live.run(RunContext(system=make_system(Family.FEDORA, tmp_path), workdir=tmp_path))
     assert result.status is Status.SKIPPED and "next boot" in result.message
+
+
+async def test_ssh_key_generates_key_with_empty_passphrase(tmp_path: Path) -> None:
+    import shutil as _sh
+
+    if not _sh.which("ssh-keygen"):
+        pytest.skip("ssh-keygen not installed")
+    ctx = ctx_for(Family.FEDORA, tmp_path)
+    [op] = get_action("ssh_key").ops({}, ctx)
+    assert op.warning  # flagged: no passphrase
+    result = await op.run(RunContext(system=ctx.system, workdir=tmp_path / "w"))
+    assert result.status is Status.SUCCESS, result
+    key = tmp_path / ".ssh" / "id_ed25519"
+    assert key.exists() and key.with_suffix(".pub").exists()
+    assert get_action("ssh_key").is_applied({}, ctx)
+
+
+async def test_task_errors_fail_the_step_not_the_run(tmp_path: Path) -> None:
+    import tarfile as _tar
+
+    async def broken(_: RunContext) -> object:
+        raise _tar.ReadError("not an xz file")
+
+    op = TaskOp("explode", broken, ["x"])  # type: ignore[arg-type]
+    result = await op.run(RunContext(system=make_system(Family.FEDORA, tmp_path), workdir=tmp_path))
+    assert result.status is Status.FAILED and "ReadError" in result.message

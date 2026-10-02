@@ -12,8 +12,8 @@ from textual.containers import Grid, Horizontal, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Select, Static, Switch
 
-from distroforge.core.settings import Settings
-from distroforge.core.validate import ValidationError, check_email, check_text
+from distroforge.core.settings import Settings, validate_git_name
+from distroforge.core.validate import ValidationError, check_email
 from distroforge.tui.themes import THEME_CHOICES
 
 if TYPE_CHECKING:
@@ -78,9 +78,7 @@ class SettingsScreen(ModalScreen[bool]):
         name = self.query_one("#git-name", Input).value.strip()
         email = self.query_one("#git-email", Input).value.strip()
         try:
-            check_text(name, max_len=100, field="git name")
-            if name.startswith("-"):
-                raise ValidationError("git name must not start with '-'")
+            validate_git_name(name)
             if email:
                 check_email(email)
         except ValidationError as exc:

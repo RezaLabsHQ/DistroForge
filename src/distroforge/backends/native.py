@@ -88,12 +88,15 @@ class PacmanBackend(Backend):
 
 
 class AurBackend(Backend):
-    """AUR packages through an existing helper (paru or yay). Never run as root."""
+    """AUR packages through an existing helper (paru or yay).
+
+    The helper runs as the user (it refuses root) but invokes sudo itself to
+    install the built package, so its operations still require credentials.
+    """
 
     name = "aur"
     label = "AUR"
     family = Family.ARCH
-    needs_root = False
 
     def supported(self) -> bool:
         return super().supported() and bool(self.system.aur_helper)
@@ -114,5 +117,6 @@ class AurBackend(Backend):
                 f"Install {', '.join(pkgs)} from the AUR via {helper}",
                 cmd,
                 warning="AUR packages are user-maintained and not vetted by Arch.",
+                needs_root=True,
             )
         ]

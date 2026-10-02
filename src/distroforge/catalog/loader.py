@@ -58,7 +58,16 @@ def _load_yaml(name: str, text: str, errors: list[str]) -> dict[str, Any]:
     unknown = set(doc) - {"categories", "items", "hide"}
     if unknown:
         errors.append(f"{name}: unknown top-level key(s) {sorted(unknown)}")
-    return doc
+    clean: dict[str, Any] = {}
+    for key in ("categories", "items", "hide"):
+        value = doc.get(key)
+        if value is None:
+            continue
+        if not isinstance(value, list):
+            errors.append(f"{name}: '{key}' must be a list")
+            continue
+        clean[key] = value
+    return clean
 
 
 def load_catalog(user_dir: Path | None = None) -> Catalog:

@@ -99,7 +99,10 @@ class Planner:
 
     def _deps(self, item: Item, method: Method | None) -> list[str]:
         deps = list(item.requires)
-        needs_flatpak = method is not None and method.backend == "flatpak"
+        # Only bootstrap Flatpak when it's missing; an existing install is used as-is.
+        needs_flatpak = (
+            method is not None and method.backend == "flatpak" and not self.env.backends.flatpak.ready()
+        )
         if needs_flatpak and item.id != FLATPAK_ITEM and FLATPAK_ITEM in self.catalog.items:
             deps.append(FLATPAK_ITEM)
         return deps

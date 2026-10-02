@@ -51,4 +51,6 @@ class FlatpakBackend(Backend):
             ("flatpak", "install", self.scope_flag, "-y", "--noninteractive", "flathub", *apps),
             root=self.needs_root,
         )
-        return [CommandOp(f"Install {', '.join(apps)} (Flathub)", cmd)]
+        # remote-add is idempotent (--if-not-exists) and makes every install self-sufficient,
+        # including on distros where DistroForge can't manage Flatpak itself.
+        return [self.add_flathub_op(), CommandOp(f"Install {', '.join(apps)} (Flathub)", cmd)]

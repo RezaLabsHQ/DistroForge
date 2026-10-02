@@ -110,7 +110,7 @@ async def test_review_and_dry_run_to_completion(make_app) -> None:  # type: igno
         await pilot.pause(0.5)
         review = app.screen
         assert isinstance(review, ReviewScreen) and review.plan is not None
-        assert {ip.item.id for ip in review.plan.items} == {"jq", "spotify", "flatpak"}
+        assert {ip.item.id for ip in review.plan.items} == {"jq", "spotify"}  # flatpak already present
         await pilot.press("enter")
         await pilot.pause(0.5)
         run = app.screen

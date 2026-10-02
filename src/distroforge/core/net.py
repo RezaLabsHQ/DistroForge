@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import http.client
 import os
 import urllib.request
 from pathlib import Path
@@ -53,7 +54,7 @@ def download(
                     raise DownloadError(f"{url} is larger than {max_bytes // 1024 // 1024} MiB")
                 digest.update(chunk)
                 out.write(chunk)
-    except (URLError, OSError, TimeoutError) as exc:
+    except (URLError, OSError, TimeoutError, http.client.HTTPException) as exc:
         dest.unlink(missing_ok=True)
         raise DownloadError(f"Download failed: {url}: {exc}") from exc
     except DownloadError:

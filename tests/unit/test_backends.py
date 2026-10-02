@@ -59,8 +59,10 @@ def test_aur_runs_as_user_and_warns(tmp_path: Path) -> None:
 @pytest.mark.parametrize(("scope", "flag", "root"), [("user", "--user", False), ("system", "--system", True)])
 def test_flatpak_scope(tmp_path: Path, scope: str, flag: str, root: bool) -> None:
     backends = Backends(make_system(Family.FEDORA, tmp_path), BackendOptions(flatpak_scope=scope))
-    op = backends.flatpak.install_ops(["org.gimp.GIMP"])[0]
-    assert isinstance(op, CommandOp)
+    remote, op = backends.flatpak.install_ops(["org.gimp.GIMP"])
+    assert isinstance(remote, CommandOp) and isinstance(op, CommandOp)
+    assert remote.command.argv[:4] == ("flatpak", "remote-add", flag, "--if-not-exists")
+    assert remote.command.root is root
     assert op.command.root is root
     assert op.command.argv == (
         "flatpak",

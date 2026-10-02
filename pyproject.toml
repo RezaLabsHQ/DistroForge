@@ -57,7 +57,10 @@ path = "src/distroforge/__init__.py"
 packages = ["src/distroforge"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/distroforge", "tests", "packaging", "README.md", "LICENSE", "CHANGELOG.md"]
+include = [
+    "src/distroforge", "tests", "scripts", "install.sh", "uninstall.sh",
+    "README.md", "LICENSE", "CHANGELOG.md", "SECURITY.md", "CONTRIBUTING.md",
+]
 
 # ── Ruff ───────────────────────────────────────────
 [tool.ruff]

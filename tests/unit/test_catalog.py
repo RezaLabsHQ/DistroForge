@@ -140,3 +140,11 @@ def test_parse_item_requires_known_category(catalog: Catalog) -> None:
             source="t",
             categories=catalog.categories,
         )
+
+
+@pytest.mark.parametrize("body", ["hide: true", "items: 5", "categories: oops", "items: {a: 1}"])
+def test_wrong_top_level_types_are_reported(tmp_path: Path, body: str) -> None:
+    _write(tmp_path, "odd.yaml", body + "\n")
+    catalog = load_catalog(tmp_path)
+    assert any("must be a list" in e for e in catalog.errors)
+    assert "git" in catalog.items

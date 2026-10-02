@@ -12,7 +12,7 @@ DistroForge installs software and changes system settings, so it is designed to 
 ## Network
 
 - Downloads are **HTTPS only**, including redirects. They have size limits and an optional pinned SHA-256.
-- Third-party repositories are added with their signing key in a dedicated keyring (`signed-by=` for apt, `gpgcheck=1` for dnf).
+- Third-party repositories are added with their signing key in a dedicated keyring (`signed-by=` for apt, `gpgcheck=1` for dnf). Because their packages install as root, adding one is flagged on the Review screen and must be acknowledged, just like remote scripts and AUR packages.
 - **Upstream install scripts** (`script:` methods) are the last-resort method. They are downloaded to a private directory (never piped from `curl` into a shell), run as your user (never root), and are always flagged on the Review screen. You must tick an acknowledgement before a live run.
 
 ## Files you own

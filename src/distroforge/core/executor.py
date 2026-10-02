@@ -25,7 +25,9 @@ log = get_logger("exec")
 OutputCallback = Callable[[str], None]
 
 _TAIL_LINES = 40
-_STREAM_LIMIT = 1 << 20  # max bytes per line before asyncio raises
+_CHUNK = 64 * 1024
+_MAX_LINE = 64 * 1024  # longer "lines" are emitted in pieces
+_DRAIN_SECONDS = 2.0  # how long to keep reading output after the process exits
 
 
 class Status(str, Enum):
@@ -75,7 +77,8 @@ class Command:
     ok_codes: frozenset[int] = frozenset({0})
 
     def __post_init__(self) -> None:
-        if not self.argv or not all(isinstance(a, str) and a for a in self.argv):
+        # Empty *arguments* are legitimate (e.g. ssh-keygen -N ""); an empty program is not.
+        if not self.argv or not self.argv[0] or not all(isinstance(a, str) for a in self.argv):
             raise ValueError(f"Invalid argv: {self.argv!r}")
         if any("\0" in a for a in self.argv):
             raise ValueError("NUL byte in argv")
@@ -117,35 +120,53 @@ class Executor:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.STDOUT,
                 env=env,
-                limit=_STREAM_LIMIT,
             )
         except OSError as exc:
             return Result.failed(f"Could not start: {exc}", returncode=126)
 
-        async def pump() -> None:
-            assert proc.stdout is not None
-            while True:
-                chunk = await proc.stdout.readline()
-                if not chunk:
-                    break
-                for piece in chunk.decode("utf-8", errors="replace").replace("\r", "\n").split("\n"):
-                    line = piece.rstrip()
-                    if not line:
-                        continue
-                    tail.append(line)
-                    log.debug("  | %s", line)
-                    if on_output is not None:
-                        on_output(line)
+        def emit(raw: bytes) -> None:
+            line = raw.decode("utf-8", errors="replace").rstrip()
+            if not line:
+                return
+            tail.append(line)
+            log.debug("  | %s", line)
+            if on_output is not None:
+                on_output(line)
 
+        async def pump() -> None:
+            # Read raw chunks rather than readline(): progress bars use bare \r and a
+            # single huge "line" must never raise or stall the reader.
+            assert proc.stdout is not None
+            buffer = b""
+            while chunk := await proc.stdout.read(_CHUNK):
+                buffer += chunk.replace(b"\r", b"\n")
+                *lines, buffer = buffer.split(b"\n")
+                for raw in lines:
+                    emit(raw)
+                while len(buffer) > _MAX_LINE:
+                    emit(buffer[:_MAX_LINE])
+                    buffer = buffer[_MAX_LINE:]
+            emit(buffer)
+
+        reader = asyncio.create_task(pump())
         try:
-            await asyncio.wait_for(pump(), timeout=command.timeout)
-            returncode = await proc.wait()
+            # Completion is the process exiting, not stdout EOF: a daemon started by a
+            # post-install script may keep the pipe open long after we are done.
+            returncode = await asyncio.wait_for(proc.wait(), timeout=command.timeout)
         except asyncio.TimeoutError:
+            reader.cancel()
             await _terminate(proc)
             return Result.failed(f"Timed out after {command.timeout:.0f}s", tail="\n".join(tail))
         except asyncio.CancelledError:
+            reader.cancel()
             await _terminate(proc)
             raise
+        try:
+            await asyncio.wait_for(reader, timeout=_DRAIN_SECONDS)
+        except asyncio.TimeoutError:
+            log.debug("Output still open after exit (background process?); stopped reading")
+        except Exception as exc:  # the command already finished; output is best-effort
+            log.warning("Output reader failed: %s", exc)
 
         duration = time.monotonic() - start
         output = "\n".join(tail)

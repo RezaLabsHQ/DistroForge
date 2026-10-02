@@ -1,0 +1,26 @@
+name: App / tweak request
+description: Suggest an app or tweak for the built-in catalog
+labels: [catalog]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: App name and homepage
+    validations:
+      required: true
+  - type: textarea
+    id: packages
+    attributes:
+      label: Package names
+      description: Whatever you know — apt / dnf / pacman / AUR / Flathub ID. Links to package pages help a lot.
+      placeholder: |
+        apt: foo
+        dnf: foo
+        pacman: foo
+        flatpak: org.example.Foo
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why is it useful?

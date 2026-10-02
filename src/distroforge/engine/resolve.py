@@ -14,7 +14,7 @@ from distroforge.catalog.models import ActionRef, Item, Method, substitute
 from distroforge.core.executor import Command, Result
 from distroforge.core.net import download
 from distroforge.core.settings import Settings
-from distroforge.core.system import SystemInfo
+from distroforge.core.system import Family, SystemInfo
 from distroforge.core.validate import ValidationError
 from distroforge.engine.ops import Operation, RunContext, TaskOp
 
@@ -51,6 +51,9 @@ class Resolver:
             return False
         if method.backend == "script":
             ok = shutil.which(method.script.shell if method.script else "sh") is not None
+        elif method.backend == "flatpak":
+            # Usable if present, or if we can install it with a known package manager.
+            ok = self.env.backends.flatpak.ready() or self.env.system.family is not Family.UNKNOWN
         else:
             ok = self.env.backends.supported(method.backend)
         return ok and all(ref.supported(self.env.system) for ref in (*method.pre, *method.post))

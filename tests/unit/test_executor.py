@@ -27,7 +27,7 @@ def test_display_quotes_arguments() -> None:
     assert Command(("echo", "a b", "$HOME")).display() == "echo 'a b' '$HOME'"
 
 
-@pytest.mark.parametrize("argv", [(), ("",), ("echo", "\0")])
+@pytest.mark.parametrize("argv", [(), ("",), ("", "x"), ("echo", "\0")])
 def test_invalid_argv_rejected(argv: tuple[str, ...]) -> None:
     with pytest.raises(ValueError):
         Command(argv)
@@ -103,3 +103,27 @@ def test_no_shell_true_anywhere() -> None:
             ):
                 offenders.append(f"{path}:{node.lineno}")
     assert offenders == []
+
+
+async def test_empty_arguments_are_allowed() -> None:
+    lines: list[str] = []
+    result = await Executor().run(Command(("printf", "%s|%s\\n", "", "x")), lines.append)
+    assert result.status is Status.SUCCESS and lines == ["|x"]
+
+
+async def test_huge_line_without_newline_does_not_crash() -> None:
+    lines: list[str] = []
+    cmd = Command(("python3", "-c", "import sys; sys.stdout.write('x' * 3_000_000); sys.stdout.flush()"))
+    result = await Executor().run(cmd, lines.append)
+    assert result.status is Status.SUCCESS
+    assert sum(len(line) for line in lines) == 3_000_000
+
+
+async def test_background_child_holding_pipe_does_not_hang() -> None:
+    import time
+
+    start = time.monotonic()
+    # The shell exits immediately, but its background child keeps stdout open for 30s.
+    result = await Executor().run(Command(("sh", "-c", "sleep 30 & echo started"), timeout=20))
+    assert result.status is Status.SUCCESS
+    assert time.monotonic() - start < 10

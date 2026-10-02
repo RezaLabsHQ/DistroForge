@@ -41,7 +41,7 @@ class Settings:
             "theme": lambda v: check("theme", v),
             "prefer": lambda v: _choice(v, PREFER_CHOICES),
             "flatpak_scope": lambda v: _choice(v, SCOPE_CHOICES),
-            "git_name": _git_name,
+            "git_name": validate_git_name,
             "git_email": lambda v: v if v == "" else check_email(v),
             "skip_installed": lambda v: _bool(v),
         }
@@ -61,7 +61,7 @@ def _choice(value: object, choices: tuple[str, ...]) -> str:
     return str(value)
 
 
-def _git_name(value: object) -> str:
+def validate_git_name(value: object) -> str:
     name = check_text(value, max_len=100, field="git name")
     if name.startswith("-"):
         raise ValidationError("git name must not start with '-'")
