@@ -1,0 +1,42 @@
+items:
+  - id: openrgb
+    name: OpenRGB
+    category: peripherals
+    description: Control RGB lighting from every vendor
+    notes: Loads the i2c-dev module so RAM/GPU RGB can be detected.
+    install:
+      - pacman: openrgb
+      - flatpak: org.openrgb.OpenRGB
+    post:
+      - { action: kernel_module, module: i2c-dev }
+
+  - id: solaar
+    name: Solaar
+    category: peripherals
+    description: Logitech Unifying/Bolt device manager
+    install:
+      - apt: solaar
+      - dnf: solaar
+      - pacman: solaar
+
+  - id: piper
+    name: Piper
+    category: peripherals
+    description: Configure gaming mice (libratbag)
+    install:
+      - apt: [piper, ratbagd]
+      - dnf: [piper, libratbag-ratbagd]
+      - pacman: [piper, libratbag]
+    post:
+      - { action: service, unit: ratbagd.service }
+
+  - id: input-remapper
+    name: Input Remapper
+    category: peripherals
+    description: Remap keys and mouse buttons
+    install:
+      - apt: input-remapper
+      - dnf: input-remapper
+      - aur: input-remapper-git
+    post:
+      - { action: service, unit: input-remapper.service }

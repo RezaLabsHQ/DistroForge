@@ -1,0 +1,61 @@
+items:
+  - id: discord
+    name: Discord
+    category: communication
+    description: Voice, video and text chat
+    install:
+      - pacman: discord
+      - flatpak: com.discordapp.Discord
+
+  - id: vesktop
+    name: Vesktop
+    category: communication
+    description: Discord client with better Linux support
+    install:
+      - flatpak: dev.vencord.Vesktop
+
+  - id: slack
+    name: Slack
+    category: communication
+    description: Team messaging
+    install:
+      - flatpak: com.slack.Slack
+
+  - id: telegram
+    name: Telegram
+    category: communication
+    description: Fast, cloud-based messaging
+    install:
+      - pacman: telegram-desktop
+      - flatpak: org.telegram.desktop
+
+  - id: signal
+    name: Signal
+    category: communication
+    description: End-to-end encrypted messaging
+    install:
+      - pacman: signal-desktop
+      - flatpak: org.signal.Signal
+
+  - id: element
+    name: Element
+    category: communication
+    description: Matrix client for secure chat
+    install:
+      - flatpak: im.riot.Riot
+
+  - id: thunderbird
+    name: Thunderbird
+    category: communication
+    description: Email, calendar and contacts
+    install:
+      - dnf: thunderbird
+      - pacman: thunderbird
+      - flatpak: org.mozilla.Thunderbird
+
+  - id: zoom
+    name: Zoom
+    category: communication
+    description: Video meetings
+    install:
+      - flatpak: us.zoom.Zoom

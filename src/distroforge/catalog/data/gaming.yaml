@@ -1,0 +1,109 @@
+items:
+  - id: steam
+    name: Steam
+    category: gaming
+    description: Valve's game store and launcher (includes Proton)
+    notes: Debian needs the contrib repo and i386 architecture; Arch needs [multilib].
+    install:
+      - apt: steam-installer
+      - dnf: steam
+        pre: [{ action: rpmfusion, nonfree: true }]
+      - pacman: steam
+        pre: [{ action: arch_multilib }]
+      - flatpak: com.valvesoftware.Steam
+
+  - id: lutris
+    name: Lutris
+    category: gaming
+    description: Open gaming platform for every game source
+    install:
+      - apt: lutris
+      - dnf: lutris
+      - pacman: lutris
+      - flatpak: net.lutris.Lutris
+
+  - id: heroic
+    name: Heroic Games Launcher
+    category: gaming
+    description: Epic, GOG and Amazon games on Linux
+    install:
+      - flatpak: com.heroicgameslauncher.hgl
+
+  - id: bottles
+    name: Bottles
+    category: gaming
+    description: Run Windows software with Wine, easily
+    install:
+      - flatpak: com.usebottles.bottles
+
+  - id: protonup-qt
+    name: ProtonUp-Qt
+    category: gaming
+    description: Manage Proton-GE and Wine-GE versions
+    install:
+      - flatpak: net.davidotek.pupgui2
+
+  - id: protonplus
+    name: ProtonPlus
+    category: gaming
+    description: Simple compatibility tool manager
+    install:
+      - flatpak: com.vysp3r.ProtonPlus
+
+  - id: gamemode
+    name: GameMode
+    category: gaming
+    description: Optimise the system while games run
+    install:
+      - apt: gamemode
+      - dnf: gamemode
+      - pacman: gamemode
+
+  - id: mangohud
+    name: MangoHud
+    category: gaming
+    description: Vulkan/OpenGL performance overlay
+    install:
+      - apt: mangohud
+      - dnf: mangohud
+      - pacman: mangohud
+
+  - id: goverlay
+    name: GOverlay
+    category: gaming
+    description: GUI to configure MangoHud and vkBasalt
+    install:
+      - dnf: goverlay
+      - pacman: goverlay
+
+  - id: wine
+    name: Wine
+    category: gaming
+    description: Windows compatibility layer
+    install:
+      - apt: wine
+      - dnf: wine
+      - pacman: wine
+        pre: [{ action: arch_multilib }]
+
+  - id: prismlauncher
+    name: Prism Launcher
+    category: gaming
+    description: Minecraft launcher with multiple instances
+    install:
+      - pacman: prismlauncher
+      - flatpak: org.prismlauncher.PrismLauncher
+
+  - id: retroarch
+    name: RetroArch
+    category: gaming
+    description: Frontend for emulators and game engines
+    install:
+      - flatpak: org.libretro.RetroArch
+
+  - id: moonlight
+    name: Moonlight
+    category: gaming
+    description: Stream games from your PC
+    install:
+      - flatpak: com.moonlight_stream.Moonlight

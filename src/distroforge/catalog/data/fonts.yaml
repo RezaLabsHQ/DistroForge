@@ -1,0 +1,44 @@
+# Nerd Fonts are downloaded from the official GitHub release over HTTPS and
+# only *.ttf / *.otf files are extracted into ~/.local/share/fonts/NerdFonts.
+items:
+  - id: font-jetbrains-mono
+    name: JetBrains Mono Nerd Font
+    category: fonts
+    description: Developer font with ligatures and icons
+    post: [{ action: nerd_font, font: JetBrainsMono }]
+
+  - id: font-fira-code
+    name: Fira Code Nerd Font
+    category: fonts
+    description: Monospace font with programming ligatures
+    post: [{ action: nerd_font, font: FiraCode }]
+
+  - id: font-cascadia-code
+    name: Cascadia Code Nerd Font
+    category: fonts
+    description: Microsoft's terminal font
+    post: [{ action: nerd_font, font: CascadiaCode }]
+
+  - id: font-hack
+    name: Hack Nerd Font
+    category: fonts
+    description: Typeface designed for source code
+    post: [{ action: nerd_font, font: Hack }]
+
+  - id: font-meslo
+    name: Meslo Nerd Font
+    category: fonts
+    description: Recommended font for Powerlevel10k / Starship
+    post: [{ action: nerd_font, font: Meslo }]
+
+  - id: font-ubuntu-mono
+    name: Ubuntu Mono Nerd Font
+    category: fonts
+    description: Ubuntu's monospace font
+    post: [{ action: nerd_font, font: UbuntuMono }]
+
+  - id: font-source-code-pro
+    name: Source Code Pro Nerd Font
+    category: fonts
+    description: Adobe's monospace font
+    post: [{ action: nerd_font, font: SourceCodePro }]

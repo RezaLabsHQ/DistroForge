@@ -1,0 +1,84 @@
+items:
+  - id: docker
+    name: Docker Engine
+    category: virtualization
+    description: Docker CE, Buildx and Compose from Docker's official repository
+    homepage: https://docs.docker.com/engine/install/
+    notes: Log out and back in after installing to use docker without sudo.
+    install:
+      - apt: [docker-ce, docker-ce-cli, containerd.io, docker-buildx-plugin, docker-compose-plugin]
+        pre:
+          - action: apt_repo
+            name: docker
+            key_url: "https://download.docker.com/linux/{apt_os}/gpg"
+            keyring: docker.asc
+            url: "https://download.docker.com/linux/{apt_os}"
+            suite: "{codename}"
+            components: [stable]
+      - dnf: [docker-ce, docker-ce-cli, containerd.io, docker-buildx-plugin, docker-compose-plugin]
+        distros: [rhel, centos, rocky, almalinux]
+        pre:
+          - action: dnf_repo
+            name: docker-ce
+            title: Docker CE Stable
+            baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+            gpgkey: https://download.docker.com/linux/centos/gpg
+      - dnf: [docker-ce, docker-ce-cli, containerd.io, docker-buildx-plugin, docker-compose-plugin]
+        pre:
+          - action: dnf_repo
+            name: docker-ce
+            title: Docker CE Stable
+            baseurl: https://download.docker.com/linux/fedora/$releasever/$basearch/stable
+            gpgkey: https://download.docker.com/linux/fedora/gpg
+      - pacman: [docker, docker-buildx, docker-compose]
+    post:
+      - { action: service, unit: docker.service }
+      - { action: user_group, group: docker, create: true }
+
+  - id: podman
+    name: Podman
+    category: virtualization
+    description: Daemonless, rootless containers
+    install:
+      - apt: podman
+      - dnf: podman
+      - pacman: podman
+
+  - id: distrobox
+    name: Distrobox
+    category: virtualization
+    description: Run any Linux distro inside your terminal
+    homepage: https://distrobox.it
+    install:
+      - apt: distrobox
+      - dnf: distrobox
+      - pacman: distrobox
+
+  - id: boxbuddy
+    name: BoxBuddy
+    category: virtualization
+    description: Graphical manager for Distrobox
+    install:
+      - flatpak: io.github.dvlv.boxbuddyrs
+
+  - id: virt-manager
+    name: Virtual Machine Manager
+    category: virtualization
+    description: KVM/QEMU virtual machines with libvirt
+    install:
+      - apt: [virt-manager, qemu-system-x86, libvirt-daemon-system]
+      - dnf: [virt-manager, libvirt, qemu-kvm]
+      - pacman: [virt-manager, qemu-full, libvirt, dnsmasq]
+    post:
+      - { action: service, unit: libvirtd.service }
+      - { action: user_group, group: libvirt }
+
+  - id: gnome-boxes
+    name: GNOME Boxes
+    category: virtualization
+    description: Simple virtual machines
+    install:
+      - flatpak: org.gnome.Boxes
+      - apt: gnome-boxes
+      - dnf: gnome-boxes
+      - pacman: gnome-boxes

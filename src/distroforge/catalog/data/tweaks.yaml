@@ -1,0 +1,72 @@
+items:
+  - id: system-upgrade
+    name: Full system upgrade
+    category: tweaks
+    kind: tweak
+    description: Upgrade every installed package (runs before everything else)
+    post:
+      - { action: system_upgrade }
+
+  - id: firewall
+    name: Firewall
+    category: tweaks
+    kind: tweak
+    description: Enable ufw / firewalld — deny incoming, allow outgoing
+    install:
+      - apt: ufw
+      - dnf: firewalld
+      - pacman: ufw
+    post:
+      - { action: firewall }
+
+  - id: fail2ban
+    name: Fail2ban
+    category: tweaks
+    kind: tweak
+    description: Ban IPs that brute-force SSH and other services
+    install:
+      - apt: fail2ban
+      - dnf: fail2ban
+      - pacman: fail2ban
+    post:
+      - { action: service, unit: fail2ban.service }
+
+  - id: ssd-trim
+    name: Weekly SSD TRIM
+    category: tweaks
+    kind: tweak
+    description: Enable fstrim.timer to keep SSDs fast
+    post:
+      - { action: service, unit: fstrim.timer }
+
+  - id: swappiness
+    name: Lower swappiness (10)
+    category: tweaks
+    kind: tweak
+    description: Prefer RAM over swap — good for desktops with plenty of memory
+    post:
+      - { action: sysctl, key: vm.swappiness, value: 10 }
+
+  - id: inotify-watches
+    name: More inotify watches
+    category: tweaks
+    kind: tweak
+    description: Raise file-watch limit for IDEs and dev servers (524288)
+    post:
+      - { action: sysctl, key: fs.inotify.max_user_watches, value: 524288 }
+
+  - id: bluetooth
+    name: Bluetooth service
+    category: tweaks
+    kind: tweak
+    description: Enable the Bluetooth daemon at boot
+    post:
+      - { action: service, unit: bluetooth.service }
+
+  - id: rpmfusion
+    name: RPM Fusion
+    category: tweaks
+    kind: tweak
+    description: Fedora's community repos for codecs, drivers and Steam
+    post:
+      - { action: rpmfusion, nonfree: true }

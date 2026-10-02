@@ -1,0 +1,4 @@
+id: gaming
+name: Gaming rig
+description: Steam, launchers, Proton managers and performance tools
+items: [steam, lutris, heroic, protonup-qt, gamemode, mangohud, discord]

@@ -1,0 +1,166 @@
+items:
+  - id: python
+    name: Python 3
+    category: languages
+    description: Python interpreter, pip and venv
+    install:
+      - apt: [python3, python3-pip, python3-venv]
+      - dnf: [python3, python3-pip]
+      - pacman: [python, python-pip]
+
+  - id: pipx
+    name: pipx
+    category: languages
+    description: Install Python CLI apps in isolated environments
+    install:
+      - apt: pipx
+      - dnf: pipx
+      - pacman: python-pipx
+
+  - id: uv
+    name: uv
+    category: languages
+    description: Extremely fast Python package and project manager
+    homepage: https://docs.astral.sh/uv/
+    requires: [local-bin-path]
+    check: { bin: uv, path: "{home}/.local/bin/uv" }
+    install:
+      - pacman: uv
+      - script:
+          url: https://astral.sh/uv/install.sh
+          shell: sh
+          env: { UV_NO_MODIFY_PATH: "1" }
+
+  - id: python-build-deps
+    name: Python build dependencies
+    category: languages
+    description: Libraries needed to compile Python versions (for pyenv)
+    install:
+      - apt: [build-essential, libssl-dev, zlib1g-dev, libbz2-dev, libreadline-dev, libsqlite3-dev, libncursesw5-dev, xz-utils, tk-dev, libxml2-dev, libxmlsec1-dev, libffi-dev, liblzma-dev]
+      - dnf: [make, gcc, patch, zlib-devel, bzip2, bzip2-devel, readline-devel, sqlite, sqlite-devel, openssl-devel, tk-devel, libffi-devel, xz-devel, libuuid-devel]
+      - pacman: [base-devel, openssl, zlib, xz, tk]
+
+  - id: pyenv
+    name: pyenv
+    category: languages
+    description: Install and switch between multiple Python versions
+    homepage: https://github.com/pyenv/pyenv
+    requires: [git, python-build-deps]
+    check: { path: "{home}/.pyenv/bin/pyenv" }
+    install:
+      - script:
+          url: https://pyenv.run
+          shell: bash
+    post:
+      - action: shell_init
+        id: pyenv
+        bash:
+          - 'export PYENV_ROOT="$HOME/.pyenv"'
+          - '[ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"'
+          - 'command -v pyenv >/dev/null && eval "$(pyenv init - bash)"'
+        zsh:
+          - 'export PYENV_ROOT="$HOME/.pyenv"'
+          - '[ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"'
+          - 'command -v pyenv >/dev/null && eval "$(pyenv init - zsh)"'
+        fish:
+          - "set -gx PYENV_ROOT $HOME/.pyenv"
+          - "fish_add_path -g $PYENV_ROOT/bin"
+          - "command -q pyenv; and pyenv init - fish | source"
+
+  - id: nodejs
+    name: Node.js
+    category: languages
+    description: JavaScript runtime with npm (distro version)
+    install:
+      - apt: [nodejs, npm]
+      - dnf: [nodejs, npm]
+      - pacman: [nodejs, npm]
+
+  - id: fnm
+    name: fnm
+    category: languages
+    description: Fast Node.js version manager — run 'fnm install --lts' afterwards
+    homepage: https://github.com/Schniz/fnm
+    requires: [curl, unzip]
+    check: { bin: fnm, path: "{home}/.local/share/fnm/fnm" }
+    install:
+      - script:
+          url: https://fnm.vercel.app/install
+          shell: bash
+          args: ["--install-dir", "{home}/.local/share/fnm", "--skip-shell"]
+    post:
+      - action: shell_init
+        id: fnm
+        bash:
+          - '[ -d "$HOME/.local/share/fnm" ] && export PATH="$HOME/.local/share/fnm:$PATH"'
+          - 'command -v fnm >/dev/null && eval "$(fnm env --use-on-cd --shell bash)"'
+        zsh:
+          - '[ -d "$HOME/.local/share/fnm" ] && export PATH="$HOME/.local/share/fnm:$PATH"'
+          - 'command -v fnm >/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"'
+        fish:
+          - "fish_add_path -g $HOME/.local/share/fnm"
+          - "command -q fnm; and fnm env --use-on-cd --shell fish | source"
+
+  - id: rust
+    name: Rust (rustup)
+    category: languages
+    description: Rust toolchain manager — rustc, cargo, clippy
+    homepage: https://rustup.rs
+    requires: [curl]
+    check: { bin: [rustup], path: "{home}/.cargo/bin/rustup" }
+    install:
+      - script:
+          url: https://sh.rustup.rs
+          shell: sh
+          args: ["-y", "--no-modify-path"]
+    post:
+      - action: shell_init
+        id: cargo
+        bash: ['[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"']
+        zsh: ['[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"']
+        fish: ["fish_add_path -g $HOME/.cargo/bin"]
+
+  - id: rust-distro
+    name: Rust (distro packages)
+    category: languages
+    description: rustc and cargo from your distribution
+    install:
+      - apt: [rustc, cargo]
+      - dnf: [rust, cargo]
+      - pacman: rust
+
+  - id: go
+    name: Go
+    category: languages
+    description: The Go programming language
+    install:
+      - apt: golang-go
+      - dnf: golang
+      - pacman: go
+
+  - id: java
+    name: Java (OpenJDK)
+    category: languages
+    description: Latest OpenJDK development kit packaged by your distro
+    install:
+      - apt: default-jdk
+      - dnf: java-latest-openjdk-devel
+      - pacman: jdk-openjdk
+
+  - id: dotnet
+    name: .NET SDK 8
+    category: languages
+    description: C#/F# SDK and runtime
+    install:
+      - apt: dotnet-sdk-8.0
+      - dnf: dotnet-sdk-8.0
+      - pacman: dotnet-sdk
+
+  - id: lua
+    name: Lua
+    category: languages
+    description: Lightweight embeddable scripting language
+    install:
+      - apt: lua5.4
+      - dnf: lua
+      - pacman: lua

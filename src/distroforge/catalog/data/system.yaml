@@ -1,0 +1,188 @@
+items:
+  - id: git
+    name: Git
+    category: system
+    description: Distributed version control
+    homepage: https://git-scm.com
+    install:
+      - apt: git
+      - dnf: git
+      - pacman: git
+
+  - id: curl
+    name: curl
+    category: system
+    description: Transfer data from URLs
+    install:
+      - apt: curl
+      - dnf: curl
+      - pacman: curl
+
+  - id: wget
+    name: Wget
+    category: system
+    description: Non-interactive network downloader
+    install:
+      - apt: wget
+      - dnf: wget
+      - pacman: wget
+
+  - id: archive-tools
+    name: Archive tools
+    category: system
+    description: zip, unzip, 7-Zip and xz support
+    install:
+      - apt: [zip, unzip, p7zip-full, xz-utils]
+      - dnf: [zip, unzip, p7zip, xz]
+      - pacman: [zip, unzip, 7zip, xz]
+
+  - id: unzip
+    name: unzip
+    category: system
+    description: Extract .zip archives
+    install:
+      - apt: unzip
+      - dnf: unzip
+      - pacman: unzip
+
+  - id: build-essential
+    name: Build tools
+    category: system
+    description: GCC, G++, make, cmake and pkg-config
+    install:
+      - apt: [build-essential, cmake, pkg-config]
+      - dnf: [gcc, gcc-c++, make, cmake, pkgconf-pkg-config]
+      - pacman: [base-devel, cmake, pkgconf]
+
+  - id: tree
+    name: tree
+    category: system
+    description: Display directories as trees
+    install:
+      - apt: tree
+      - dnf: tree
+      - pacman: tree
+
+  - id: jq
+    name: jq
+    category: system
+    description: Command-line JSON processor
+    install:
+      - apt: jq
+      - dnf: jq
+      - pacman: jq
+
+  - id: ripgrep
+    name: ripgrep
+    category: system
+    description: Very fast recursive grep (rg)
+    install:
+      - apt: ripgrep
+      - dnf: ripgrep
+      - pacman: ripgrep
+
+  - id: fd
+    name: fd
+    category: system
+    description: Simple, fast alternative to find
+    install:
+      - apt: fd-find
+      - dnf: fd-find
+      - pacman: fd
+
+  - id: bat
+    name: bat
+    category: system
+    description: cat clone with syntax highlighting
+    install:
+      - apt: bat
+      - dnf: bat
+      - pacman: bat
+
+  - id: fzf
+    name: fzf
+    category: system
+    description: Command-line fuzzy finder
+    install:
+      - apt: fzf
+      - dnf: fzf
+      - pacman: fzf
+
+  - id: htop
+    name: htop
+    category: system
+    description: Interactive process viewer
+    install:
+      - apt: htop
+      - dnf: htop
+      - pacman: htop
+
+  - id: btop
+    name: btop++
+    category: system
+    description: Resource monitor with a beautiful TUI
+    install:
+      - apt: btop
+      - dnf: btop
+      - pacman: btop
+
+  - id: fastfetch
+    name: fastfetch
+    category: system
+    description: System information at a glance (neofetch successor)
+    notes: Not packaged for Ubuntu 24.04 / Debian 12; available on newer releases.
+    install:
+      - apt: fastfetch
+      - dnf: fastfetch
+      - pacman: fastfetch
+
+  - id: rsync
+    name: rsync
+    category: system
+    description: Fast incremental file transfer
+    install:
+      - apt: rsync
+      - dnf: rsync
+      - pacman: rsync
+
+  - id: openssh
+    name: OpenSSH client
+    category: system
+    description: ssh, scp and ssh-keygen
+    install:
+      - apt: openssh-client
+      - dnf: openssh-clients
+      - pacman: openssh
+
+  - id: openssh-server
+    name: OpenSSH server
+    category: system
+    description: Accept SSH connections to this machine
+    install:
+      - apt: openssh-server
+        post: [{ action: service, unit: ssh }]
+      - dnf: openssh-server
+        post: [{ action: service, unit: sshd }]
+      - pacman: openssh
+        post: [{ action: service, unit: sshd }]
+
+  - id: gnupg
+    name: GnuPG
+    category: system
+    description: OpenPGP encryption and signing
+    install:
+      - apt: gnupg
+      - dnf: gnupg2
+      - pacman: gnupg
+
+  - id: flatpak
+    name: Flatpak + Flathub
+    category: system
+    description: Universal app packaging with the Flathub store
+    homepage: https://flathub.org
+    install:
+      - apt: flatpak
+      - dnf: flatpak
+      - pacman: flatpak
+    post:
+      - { action: flathub }

@@ -1,0 +1,102 @@
+items:
+  - id: vscode
+    name: Visual Studio Code
+    category: editors
+    description: Microsoft's code editor (official repository)
+    homepage: https://code.visualstudio.com
+    install:
+      - apt: code
+        pre:
+          - action: apt_repo
+            name: vscode
+            key_url: https://packages.microsoft.com/keys/microsoft.asc
+            keyring: microsoft.asc
+            url: https://packages.microsoft.com/repos/code
+            suite: stable
+            components: [main]
+      - dnf: code
+        pre:
+          - action: dnf_repo
+            name: vscode
+            title: Visual Studio Code
+            baseurl: https://packages.microsoft.com/yumrepos/vscode
+            gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+      - aur: visual-studio-code-bin
+      - flatpak: com.visualstudio.code
+
+  - id: vscodium
+    name: VSCodium
+    category: editors
+    description: VS Code without Microsoft telemetry
+    install:
+      - flatpak: com.vscodium.codium
+      - aur: vscodium-bin
+
+  - id: neovim
+    name: Neovim
+    category: editors
+    description: Hyperextensible Vim-based editor
+    install:
+      - apt: neovim
+      - dnf: neovim
+      - pacman: neovim
+
+  - id: vim
+    name: Vim
+    category: editors
+    description: The ubiquitous modal editor
+    install:
+      - apt: vim
+      - dnf: vim-enhanced
+      - pacman: vim
+
+  - id: helix
+    name: Helix
+    category: editors
+    description: Post-modern modal editor
+    install:
+      - dnf: helix
+      - pacman: helix
+
+  - id: micro
+    name: micro
+    category: editors
+    description: Intuitive terminal editor
+    install:
+      - apt: micro
+      - dnf: micro
+      - pacman: micro
+
+  - id: zed
+    name: Zed
+    category: editors
+    description: High-performance collaborative editor
+    install:
+      - pacman: zed
+      - flatpak: dev.zed.Zed
+
+  - id: kate
+    name: Kate
+    category: editors
+    description: KDE's advanced text editor
+    install:
+      - apt: kate
+      - dnf: kate
+      - pacman: kate
+      - flatpak: org.kde.kate
+
+  - id: emacs
+    name: GNU Emacs
+    category: editors
+    description: The extensible, self-documenting editor
+    install:
+      - apt: emacs
+      - dnf: emacs
+      - pacman: emacs
+
+  - id: android-studio
+    name: Android Studio
+    category: editors
+    description: Official IDE for Android development
+    install:
+      - flatpak: com.google.AndroidStudio

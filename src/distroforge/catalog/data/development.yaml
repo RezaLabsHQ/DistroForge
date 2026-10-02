@@ -1,0 +1,74 @@
+items:
+  - id: git-identity
+    name: Git identity
+    category: development
+    kind: tweak
+    description: Set git user.name/email from Settings and default branch to main
+    requires: [git]
+    post:
+      - { action: git_identity, default_branch: main }
+
+  - id: ssh-key
+    name: SSH key
+    category: development
+    kind: tweak
+    description: Generate an Ed25519 key in ~/.ssh if you don't have one
+    requires: [openssh]
+    post:
+      - { action: ssh_key }
+
+  - id: github-cli
+    name: GitHub CLI
+    category: development
+    description: GitHub from the command line (gh)
+    homepage: https://cli.github.com
+    install:
+      - apt: gh
+        pre:
+          - action: apt_repo
+            name: github-cli
+            key_url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+            keyring: githubcli.gpg
+            url: https://cli.github.com/packages
+            suite: stable
+            components: [main]
+      - dnf: gh
+      - pacman: github-cli
+
+  - id: lazygit
+    name: lazygit
+    category: development
+    description: Terminal UI for git
+    install:
+      - pacman: lazygit
+
+  - id: dbeaver
+    name: DBeaver
+    category: development
+    description: Universal database client
+    install:
+      - flatpak: io.dbeaver.DBeaverCommunity
+
+  - id: postman
+    name: Postman
+    category: development
+    description: API development platform
+    install:
+      - flatpak: com.getpostman.Postman
+
+  - id: bruno
+    name: Bruno
+    category: development
+    description: Offline-first, git-friendly API client
+    install:
+      - flatpak: com.usebruno.Bruno
+
+  - id: meld
+    name: Meld
+    category: development
+    description: Visual diff and merge tool
+    install:
+      - apt: meld
+      - dnf: meld
+      - pacman: meld
+      - flatpak: org.gnome.meld

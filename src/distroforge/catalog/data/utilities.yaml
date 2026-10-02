@@ -1,0 +1,118 @@
+items:
+  - id: flatseal
+    name: Flatseal
+    category: utilities
+    description: Manage Flatpak permissions
+    install:
+      - flatpak: com.github.tchx84.Flatseal
+
+  - id: warehouse
+    name: Warehouse
+    category: utilities
+    description: Manage installed Flatpaks, data and snapshots
+    install:
+      - flatpak: io.github.flattool.Warehouse
+
+  - id: mission-center
+    name: Mission Center
+    category: utilities
+    description: Monitor CPU, memory, disk, network and GPU
+    install:
+      - flatpak: io.missioncenter.MissionCenter
+
+  - id: gparted
+    name: GParted
+    category: utilities
+    description: Partition editor
+    install:
+      - apt: gparted
+      - dnf: gparted
+      - pacman: gparted
+
+  - id: gnome-tweaks
+    name: GNOME Tweaks
+    category: utilities
+    description: Advanced GNOME settings
+    install:
+      - apt: gnome-tweaks
+      - dnf: gnome-tweaks
+      - pacman: gnome-tweaks
+
+  - id: extension-manager
+    name: Extension Manager
+    category: utilities
+    description: Browse and install GNOME Shell extensions
+    install:
+      - flatpak: com.mattjakeman.ExtensionManager
+
+  - id: localsend
+    name: LocalSend
+    category: utilities
+    description: AirDrop-like file sharing over your network
+    install:
+      - flatpak: org.localsend.localsend_app
+
+  - id: qbittorrent
+    name: qBittorrent
+    category: utilities
+    description: BitTorrent client
+    install:
+      - apt: qbittorrent
+      - dnf: qbittorrent
+      - pacman: qbittorrent
+      - flatpak: org.qbittorrent.qBittorrent
+
+  - id: timeshift
+    name: Timeshift
+    category: utilities
+    description: System restore snapshots (rsync/btrfs)
+    install:
+      - apt: timeshift
+      - dnf: timeshift
+      - aur: timeshift
+
+  - id: nvtop
+    name: nvtop
+    category: utilities
+    description: GPU process monitor
+    install:
+      - apt: nvtop
+      - dnf: nvtop
+      - pacman: nvtop
+
+  - id: ncdu
+    name: ncdu
+    category: utilities
+    description: Disk usage analyser with an ncurses UI
+    install:
+      - apt: ncdu
+      - dnf: ncdu
+      - pacman: ncdu
+
+  - id: duf
+    name: duf
+    category: utilities
+    description: Better df — disk usage at a glance
+    install:
+      - apt: duf
+      - dnf: duf
+      - pacman: duf
+
+  - id: bleachbit
+    name: BleachBit
+    category: utilities
+    description: Free disk space and protect privacy
+    install:
+      - apt: bleachbit
+      - dnf: bleachbit
+      - pacman: bleachbit
+
+  - id: filezilla
+    name: FileZilla
+    category: utilities
+    description: FTP/SFTP client
+    install:
+      - apt: filezilla
+      - dnf: filezilla
+      - pacman: filezilla
+      - flatpak: org.filezillaproject.Filezilla

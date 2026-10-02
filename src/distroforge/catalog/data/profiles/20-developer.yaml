@@ -1,0 +1,29 @@
+id: developer
+name: Developer workstation
+description: Shell, git, containers, editors and the most common language toolchains
+items:
+  - git
+  - curl
+  - build-essential
+  - zsh
+  - zsh-default
+  - starship
+  - zsh-autosuggestions
+  - zsh-syntax-highlighting
+  - zoxide
+  - fzf
+  - ripgrep
+  - git-identity
+  - ssh-key
+  - github-cli
+  - docker
+  - vscode
+  - neovim
+  - python
+  - pipx
+  - uv
+  - nodejs
+  - rust
+  - go
+  - inotify-watches
+  - font-jetbrains-mono

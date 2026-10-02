@@ -1,0 +1,4 @@
+id: hardening
+name: Security baseline
+description: Up-to-date packages, a firewall, brute-force protection and a password manager
+items: [system-upgrade, firewall, fail2ban, keepassxc]
