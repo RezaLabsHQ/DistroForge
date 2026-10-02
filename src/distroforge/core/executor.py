@@ -1,7 +1,7 @@
 """Command execution.
 
 Security invariant: commands are argv tuples executed with
-``create_subprocess_exec`` / ``subprocess.run`` and **never** through a shell,
+``subprocess.Popen`` / ``subprocess.run`` and **never** through a shell,
 so catalog data can never be interpreted as shell syntax.
 """
 
@@ -12,6 +12,7 @@ import os
 import shlex
 import shutil
 import subprocess
+import threading
 import time
 from collections import deque
 from collections.abc import Callable, Mapping
@@ -113,60 +114,79 @@ class Executor:
 
         start = time.monotonic()
         tail: deque[str] = deque(maxlen=_TAIL_LINES)
-        try:
-            proc = await asyncio.create_subprocess_exec(
-                *argv,
-                stdin=asyncio.subprocess.DEVNULL,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.STDOUT,
-                env=env,
-            )
-        except OSError as exc:
-            return Result.failed(f"Could not start: {exc}", returncode=126)
+        loop = asyncio.get_running_loop()
+        finished = threading.Event()
 
-        def emit(raw: bytes) -> None:
-            line = raw.decode("utf-8", errors="replace").rstrip()
-            if not line:
-                return
+        def deliver(line: str) -> None:  # runs on the event loop
+            if finished.is_set():
+                return  # late output from a lingering background process
             tail.append(line)
             log.debug("  | %s", line)
             if on_output is not None:
                 on_output(line)
 
-        async def pump() -> None:
-            # Read raw chunks rather than readline(): progress bars use bare \r and a
-            # single huge "line" must never raise or stall the reader.
-            assert proc.stdout is not None
-            buffer = b""
-            while chunk := await proc.stdout.read(_CHUNK):
-                buffer += chunk.replace(b"\r", b"\n")
-                *lines, buffer = buffer.split(b"\n")
-                for raw in lines:
-                    emit(raw)
-                while len(buffer) > _MAX_LINE:
-                    emit(buffer[:_MAX_LINE])
-                    buffer = buffer[_MAX_LINE:]
-            emit(buffer)
+        try:
+            proc = await asyncio.to_thread(
+                subprocess.Popen,
+                argv,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                env=env,
+            )
+        except OSError as exc:
+            return Result.failed(f"Could not start: {exc}", returncode=126)
 
-        reader = asyncio.create_task(pump())
+        assert proc.stdout is not None
+        fd = proc.stdout.fileno()
+
+        def read_output() -> None:  # runs in a reader thread
+            # Raw chunks rather than lines: progress bars use bare \r, and a single
+            # huge "line" must never raise or stall the reader.
+            buffer = b""
+
+            def send(raw: bytes) -> None:
+                line = raw.decode("utf-8", errors="replace").rstrip()
+                if line:
+                    loop.call_soon_threadsafe(deliver, line)
+
+            try:
+                while chunk := os.read(fd, _CHUNK):
+                    buffer += chunk.replace(b"\r", b"\n")
+                    *lines, buffer = buffer.split(b"\n")
+                    for raw in lines:
+                        send(raw)
+                    while len(buffer) > _MAX_LINE:
+                        send(buffer[:_MAX_LINE])
+                        buffer = buffer[_MAX_LINE:]
+                send(buffer)
+            except (OSError, RuntimeError):  # pipe closed / loop shut down
+                pass
+
+        reader = threading.Thread(target=read_output, name="distroforge-output", daemon=True)
+        reader.start()
         try:
             # Completion is the process exiting, not stdout EOF: a daemon started by a
             # post-install script may keep the pipe open long after we are done.
-            returncode = await asyncio.wait_for(proc.wait(), timeout=command.timeout)
+            # (asyncio's Process.wait() waits for the pipes on Python < 3.13, so the
+            # wait happens in a thread on Popen instead.)
+            returncode = await asyncio.wait_for(asyncio.to_thread(proc.wait), timeout=command.timeout)
         except asyncio.TimeoutError:
-            reader.cancel()
             await _terminate(proc)
+            finished.set()
             return Result.failed(f"Timed out after {command.timeout:.0f}s", tail="\n".join(tail))
         except asyncio.CancelledError:
-            reader.cancel()
             await _terminate(proc)
+            finished.set()
             raise
-        try:
-            await asyncio.wait_for(reader, timeout=_DRAIN_SECONDS)
-        except asyncio.TimeoutError:
+
+        await asyncio.to_thread(reader.join, _DRAIN_SECONDS)
+        await asyncio.sleep(0)  # let already-queued output callbacks run
+        finished.set()
+        if reader.is_alive():
             log.debug("Output still open after exit (background process?); stopped reading")
-        except Exception as exc:  # the command already finished; output is best-effort
-            log.warning("Output reader failed: %s", exc)
+        else:
+            proc.stdout.close()
 
         duration = time.monotonic() - start
         output = "\n".join(tail)
@@ -177,15 +197,15 @@ class Executor:
         return Result(Status.FAILED, returncode, f"Exited with code {returncode}", output, duration)
 
 
-async def _terminate(proc: asyncio.subprocess.Process) -> None:
-    if proc.returncode is not None:
+async def _terminate(proc: subprocess.Popen[bytes]) -> None:
+    if proc.poll() is not None:
         return
     proc.terminate()
     try:
-        await asyncio.wait_for(proc.wait(), timeout=10)
-    except asyncio.TimeoutError:
+        await asyncio.to_thread(proc.wait, 10)
+    except subprocess.TimeoutExpired:
         proc.kill()
-        await proc.wait()
+        await asyncio.to_thread(proc.wait)
 
 
 def probe(argv: list[str], timeout: float = 30.0) -> tuple[int, str]:

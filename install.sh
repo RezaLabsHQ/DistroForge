@@ -141,6 +141,7 @@ EOF
 if [[ -n "$SCRIPT_DIR" && -f "$SCRIPT_DIR/uninstall.sh" ]]; then
     install -m 0755 "$SCRIPT_DIR/uninstall.sh" "$APP_DIR/uninstall.sh"
 elif command -v curl >/dev/null 2>&1; then
-    curl -fsSL "https://raw.githubusercontent.com/RezaLabsHQ/DistroForge/$REF/uninstall.sh" -o "$APP_DIR/uninstall.sh" &&
-        chmod 0755 "$APP_DIR/uninstall.sh" || true
+    if curl -fsSL "https://raw.githubusercontent.com/RezaLabsHQ/DistroForge/$REF/uninstall.sh" -o "$APP_DIR/uninstall.sh"; then
+        chmod 0755 "$APP_DIR/uninstall.sh"
+    fi
 fi

@@ -17,12 +17,16 @@ if [[ -t 1 ]]; then G=$'\033[32m' N=$'\033[0m'; else G="" N=""; fi
 ok() { printf ' %s✓%s %s\n' "$G" "$N" "$*"; }
 
 if command -v "$APP" >/dev/null 2>&1; then
-    "$APP" integrate --remove >/dev/null 2>&1 && ok "Removed menu entry, icon and completions" || true
+    if "$APP" integrate --remove >/dev/null 2>&1; then
+        ok "Removed menu entry, icon and completions"
+    fi
 fi
 
 METHOD="$(cat "$APP_DIR/install-method" 2>/dev/null || echo venv)"
 if [[ "$METHOD" == "pipx" ]] && command -v pipx >/dev/null 2>&1; then
-    pipx uninstall "$APP" >/dev/null 2>&1 && ok "Removed pipx package" || true
+    if pipx uninstall "$APP" >/dev/null 2>&1; then
+        ok "Removed pipx package"
+    fi
 fi
 if [[ -L "$BIN" ]] || { [[ -f "$BIN" ]] && grep -q "distroforge" "$BIN" 2>/dev/null; }; then
     rm -f -- "$BIN" && ok "Removed $BIN"
