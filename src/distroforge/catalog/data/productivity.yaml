@@ -1,0 +1,91 @@
+items:
+  - id: libreoffice
+    name: LibreOffice
+    category: productivity
+    description: Full office suite
+    install:
+      - apt: libreoffice
+      - dnf: libreoffice
+      - pacman: libreoffice-fresh
+      - flatpak: org.libreoffice.LibreOffice
+
+  - id: onlyoffice
+    name: ONLYOFFICE
+    category: productivity
+    description: Office suite with strong MS Office compatibility
+    install:
+      - flatpak: org.onlyoffice.desktopeditors
+
+  - id: obsidian
+    name: Obsidian
+    category: productivity
+    description: Markdown knowledge base
+    install:
+      - pacman: obsidian
+      - flatpak: md.obsidian.Obsidian
+
+  - id: joplin
+    name: Joplin
+    category: productivity
+    description: Open-source note taking with sync
+    install:
+      - flatpak: net.cozic.joplin_desktop
+
+  - id: logseq
+    name: Logseq
+    category: productivity
+    description: Privacy-first outliner and knowledge base
+    install:
+      - flatpak: com.logseq.Logseq
+
+  - id: okular
+    name: Okular
+    category: productivity
+    description: Universal document viewer
+    install:
+      - apt: okular
+      - dnf: okular
+      - pacman: okular
+      - flatpak: org.kde.okular
+
+  - id: zotero
+    name: Zotero
+    category: productivity
+    description: Research and citation manager
+    install:
+      - flatpak: org.zotero.Zotero
+
+  - id: bitwarden
+    name: Bitwarden
+    category: productivity
+    description: Open-source password manager
+    install:
+      - flatpak: com.bitwarden.desktop
+
+  - id: keepassxc
+    name: KeePassXC
+    category: productivity
+    description: Offline password manager
+    install:
+      - apt: keepassxc
+      - dnf: keepassxc
+      - pacman: keepassxc
+      - flatpak: org.keepassxc.KeePassXC
+
+  - id: nextcloud-client
+    name: Nextcloud
+    category: productivity
+    description: Desktop sync client for Nextcloud
+    install:
+      - flatpak: com.nextcloud.desktopclient.nextcloud
+
+  - id: syncthing
+    name: Syncthing
+    category: productivity
+    description: Continuous peer-to-peer file sync
+    install:
+      - apt: syncthing
+      - dnf: syncthing
+      - pacman: syncthing
+    post:
+      - { action: service, unit: syncthing.service, user: true }

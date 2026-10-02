@@ -1,0 +1,44 @@
+#compdef distroforge
+# zsh completion for distroforge
+
+_distroforge_items() {
+    local -a items
+    items=(${(f)"$(distroforge list --ids 2>/dev/null)"})
+    _describe 'catalog item' items
+}
+
+_distroforge_profiles() {
+    local -a profiles
+    profiles=(${(f)"$(distroforge profiles 2>/dev/null | awk '/^[a-z]/ {print $1}')"})
+    _describe 'profile' profiles
+}
+
+_distroforge() {
+    local curcontext="$curcontext" state line
+    _arguments -C \
+        '--version[show version]' \
+        '--distro[override family detection]:family:(debian fedora arch)' \
+        '1:command:((tui\:"open the full-screen app" list\:"list catalog items" apply\:"install items or a profile" profiles\:"list profiles" doctor\:"check the environment" validate\:"validate catalog files" integrate\:"install menu entry, icon and completions"))' \
+        '*::arg:->args'
+    case $state in
+        args)
+            case $line[1] in
+                tui) _arguments '--dry-run[start in dry-run mode]' ;;
+                list) _arguments '--category[only this category]:category:' '--installed[check installed state]' ;;
+                apply)
+                    _arguments \
+                        '(-p --profile)'{-p,--profile}'[profile id or file]:profile:_distroforge_profiles' \
+                        '*'{-m,--method}'[force ITEM=METHOD]:spec:' \
+                        '(-n --dry-run)'{-n,--dry-run}'[show commands only]' \
+                        '(-y --yes)'{-y,--yes}'[do not ask]' \
+                        '--reinstall[run even if installed]' \
+                        '--fail-fast[stop at first failure]' \
+                        '(-v --verbose)'{-v,--verbose}'[stream output]' \
+                        '*:item:_distroforge_items' ;;
+                validate) _files -g '*.y(a|)ml' ;;
+                integrate) _arguments '--remove[remove the integration]' ;;
+            esac ;;
+    esac
+}
+
+_distroforge "$@"

@@ -1,0 +1,18 @@
+# Categories shown in the sidebar. User catalogs may add more.
+categories:
+  - { id: system, name: System essentials, icon: "⚙", order: 10 }
+  - { id: shell, name: Shell & terminal, icon: "❯", order: 20 }
+  - { id: development, name: Development, icon: "◇", order: 30 }
+  - { id: languages, name: Languages & runtimes, icon: "λ", order: 40 }
+  - { id: editors, name: Editors & IDEs, icon: "✎", order: 50 }
+  - { id: browsers, name: Browsers, icon: "◎", order: 60 }
+  - { id: communication, name: Communication, icon: "✉", order: 70 }
+  - { id: media, name: Audio & video, icon: "♫", order: 80 }
+  - { id: graphics, name: Graphics & 3D, icon: "✿", order: 90 }
+  - { id: productivity, name: Office & productivity, icon: "▤", order: 100 }
+  - { id: gaming, name: Gaming, icon: "◆", order: 110 }
+  - { id: utilities, name: Utilities, icon: "⚒", order: 120 }
+  - { id: virtualization, name: Containers & VMs, icon: "▣", order: 125 }
+  - { id: fonts, name: Fonts, icon: "ƒ", order: 130 }
+  - { id: peripherals, name: Peripherals & RGB, icon: "⌨", order: 140 }
+  - { id: tweaks, name: System tweaks, icon: "✦", order: 150 }

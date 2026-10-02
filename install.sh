@@ -1,150 +1,147 @@
 #!/usr/bin/env bash
-# DistroForge Installer
+# DistroForge installer — per-user, no root required.
 #
-# Usage (one-liner):
-#   bash <(curl -fsSL https://raw.githubusercontent.com/rezalabshq/DistroForge/main/install.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/RezaLabsHQ/DistroForge/main/install.sh)
 #
-# Or clone first:
-#   git clone https://github.com/rezalabshq/DistroForge.git && bash DistroForge/install.sh
-
+# or from a checkout:   ./install.sh
+#
+# What it does:
+#   1. installs the `distroforge` command with pipx, or into a private venv
+#      at ~/.local/share/distroforge/venv with a launcher in ~/.local/bin
+#   2. runs `distroforge integrate`: app-menu entry (opens in your terminal),
+#      icon, and bash/zsh/fish completions
+#
+# Environment overrides:
+#   DISTROFORGE_SOURCE   pip-installable source (path, URL or git+https URL)
+#   DISTROFORGE_REF      git ref to install when downloading (default: main)
+#   DISTROFORGE_NO_PIPX  set to 1 to force the venv method
 set -euo pipefail
 
-# ── Config ────────────────────────────────────────────────────────────────────
-REPO_URL="https://github.com/rezalabshq/DistroForge.git"
-APP_NAME="distroforge"
-INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/${APP_NAME}"
-BIN_DIR="${HOME}/.local/bin"
-VENV_DIR="${INSTALL_DIR}/.venv"
-MIN_PYTHON_MINOR=10
+APP="distroforge"
+REPO="https://github.com/RezaLabsHQ/DistroForge"
+REF="${DISTROFORGE_REF:-main}"
+DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+APP_DIR="$DATA_HOME/$APP"
+VENV="$APP_DIR/venv"
+BIN_DIR="$HOME/.local/bin"
+MIN_MINOR=10
 
-# ── Colours ───────────────────────────────────────────────────────────────────
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-DIM='\033[2m'
-NC='\033[0m'
+if [[ -t 1 ]]; then
+    B=$'\033[1m' D=$'\033[2m' R=$'\033[31m' G=$'\033[32m' Y=$'\033[33m' C=$'\033[36m' N=$'\033[0m'
+else
+    B="" D="" R="" G="" Y="" C="" N=""
+fi
+ok()   { printf ' %s✓%s %s\n' "$G" "$N" "$*"; }
+info() { printf ' %s→%s %s\n' "$C" "$N" "$*"; }
+warn() { printf ' %s⚠%s %s\n' "$Y" "$N" "$*"; }
+die()  { printf ' %s✗%s %s\n' "$R" "$N" "$*" >&2; exit 1; }
 
-ok()   { echo -e " ${GREEN}✓${NC}  $*"; }
-info() { echo -e " ${CYAN}→${NC}  $*"; }
-warn() { echo -e " ${YELLOW}⚠${NC}  $*"; }
-die()  { echo -e " ${RED}✗${NC}  $*" >&2; exit 1; }
+printf '\n%s  ✦ DistroForge installer%s\n%s  forge your Linux setup%s\n\n' "$B$C" "$N" "$D" "$N"
 
-# ── Header ────────────────────────────────────────────────────────────────────
-echo
-echo -e "${CYAN}${BOLD}╔══════════════════════════════════════╗${NC}"
-echo -e "${CYAN}${BOLD}║     DistroForge — Installer          ║${NC}"
-echo -e "${CYAN}${BOLD}╚══════════════════════════════════════╝${NC}"
-echo -e "${DIM}  by Hamid at Reza Labs HQ${NC}"
-echo
+[[ "$(uname -s)" == "Linux" ]] || die "DistroForge runs on Linux only."
+[[ "$EUID" -ne 0 ]] || die "Run this as your normal user, not root. DistroForge uses sudo only when needed."
 
-# ── Requirements ──────────────────────────────────────────────────────────────
-info "Checking requirements..."
-
-# git
-command -v git &>/dev/null || die "git is required. Install it: sudo apt install git"
-ok "git $(git --version | awk '{print $3}')"
-
-# Python 3.10+
-PYTHON_CMD=""
-for cmd in python3 python; do
-    if command -v "$cmd" &>/dev/null; then
-        minor=$("$cmd" -c "import sys; print(sys.version_info.minor)")
-        major=$("$cmd" -c "import sys; print(sys.version_info.major)")
-        if [[ "$major" -eq 3 && "$minor" -ge "$MIN_PYTHON_MINOR" ]]; then
-            PYTHON_CMD="$cmd"
-            break
-        fi
+# ── Python ────────────────────────────────────────────────────────────────────
+PYTHON=""
+for candidate in python3 python; do
+    if command -v "$candidate" >/dev/null 2>&1 &&
+        "$candidate" -c "import sys; sys.exit(0 if sys.version_info >= (3, $MIN_MINOR) else 1)" 2>/dev/null; then
+        PYTHON="$(command -v "$candidate")"
+        break
     fi
 done
-[[ -n "$PYTHON_CMD" ]] || die "Python 3.${MIN_PYTHON_MINOR}+ is required. Install it: sudo apt install python3"
-ok "Python $("$PYTHON_CMD" --version 2>&1 | awk '{print $2}')"
+[[ -n "$PYTHON" ]] || die "Python 3.$MIN_MINOR+ is required. Install it with your package manager (python3)."
+ok "Python $("$PYTHON" -c 'import platform; print(platform.python_version())')"
 
-# ── Install / Update ──────────────────────────────────────────────────────────
-echo
-if [[ -d "${INSTALL_DIR}/.git" ]]; then
-    info "Updating existing installation at ${INSTALL_DIR}..."
-    git -C "$INSTALL_DIR" pull --ff-only --quiet
-    ok "Updated to latest"
+# ── Source ────────────────────────────────────────────────────────────────────
+SCRIPT_DIR=""
+if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
+if [[ -n "${DISTROFORGE_SOURCE:-}" ]]; then
+    SOURCE="$DISTROFORGE_SOURCE"
+elif [[ -n "$SCRIPT_DIR" && -f "$SCRIPT_DIR/pyproject.toml" && -d "$SCRIPT_DIR/src/distroforge" ]]; then
+    SOURCE="$SCRIPT_DIR"
 else
-    info "Cloning DistroForge to ${INSTALL_DIR}..."
-    mkdir -p "$(dirname "$INSTALL_DIR")"
-    git clone --depth 1 --quiet "$REPO_URL" "$INSTALL_DIR"
-    ok "Cloned successfully"
+    SOURCE="$REPO/archive/$REF.tar.gz"
+fi
+info "Installing from $SOURCE"
+
+# ── Migrate a 1.x install (git clone + hand-written launcher) ─────────────────
+if [[ -d "$APP_DIR/.git" && -f "$APP_DIR/distroforge.py" ]]; then
+    warn "Found DistroForge 1.x in $APP_DIR — replacing it"
+    rm -rf -- "${APP_DIR:?}"
+    if [[ -f "$BIN_DIR/$APP" ]] && grep -q "generated by install.sh" "$BIN_DIR/$APP" 2>/dev/null; then
+        rm -f -- "$BIN_DIR/$APP"
+    fi
+    ok "Removed 1.x files (your old config.local.yaml is no longer used; see 'distroforge profiles')"
 fi
 
-# ── Python Environment ────────────────────────────────────────────────────────
-echo
-info "Setting up Python environment..."
-
-if [[ ! -d "$VENV_DIR" ]]; then
-    "$PYTHON_CMD" -m venv "$VENV_DIR"
-fi
-
-"$VENV_DIR/bin/pip" install --quiet --upgrade pip
-"$VENV_DIR/bin/pip" install --quiet -r "${INSTALL_DIR}/requirements.txt"
-ok "Dependencies installed (rich, pyyaml)"
-
-# ── Launcher Script ───────────────────────────────────────────────────────────
-echo
-info "Creating launcher at ${BIN_DIR}/${APP_NAME}..."
+# ── Install ───────────────────────────────────────────────────────────────────
 mkdir -p "$BIN_DIR"
+METHOD=""
+if [[ "${DISTROFORGE_NO_PIPX:-0}" != "1" ]] && command -v pipx >/dev/null 2>&1; then
+    info "Using pipx"
+    pipx install --force "$SOURCE" >/dev/null
+    METHOD="pipx"
+    EXE="$(command -v "$APP" || true)"
+    [[ -n "$EXE" ]] || EXE="$BIN_DIR/$APP"
+else
+    if ! "$PYTHON" -c "import venv, ensurepip" 2>/dev/null; then
+        die "Python's venv module is missing. Install it first, e.g.: sudo apt install python3-venv"
+    fi
+    info "Creating a private environment in $VENV"
+    mkdir -p "$APP_DIR"
+    if [[ ! -x "$VENV/bin/python" ]]; then
+        "$PYTHON" -m venv "$VENV"
+    fi
+    "$VENV/bin/python" -m pip install --quiet --upgrade pip
+    "$VENV/bin/python" -m pip install --quiet --upgrade "$SOURCE"
+    ln -sf "$VENV/bin/$APP" "$BIN_DIR/$APP"
+    METHOD="venv"
+    EXE="$BIN_DIR/$APP"
+fi
+VERSION="$("$EXE" --version 2>/dev/null | awk '{print $2}')"
+[[ -n "$VERSION" ]] || die "Installation finished but '$EXE' does not run."
+ok "Installed DistroForge $VERSION ($METHOD)"
+printf '%s\n' "$METHOD" > "$APP_DIR/install-method" 2>/dev/null || { mkdir -p "$APP_DIR" && printf '%s\n' "$METHOD" > "$APP_DIR/install-method"; }
 
-cat > "${BIN_DIR}/${APP_NAME}" <<EOF
-#!/usr/bin/env bash
-# DistroForge launcher — generated by install.sh
-exec "${VENV_DIR}/bin/python" "${INSTALL_DIR}/distroforge.py" "\$@"
+# ── Desktop integration ───────────────────────────────────────────────────────
+if "$EXE" integrate --exec "$EXE" >/dev/null; then
+    ok "Added to your app menu (opens in your terminal), with icon and shell completions"
+else
+    warn "Could not add the app-menu entry — run '$APP integrate' later"
+fi
+
+# ── PATH ──────────────────────────────────────────────────────────────────────
+case ":$PATH:" in
+    *":$BIN_DIR:"*) ok "$BIN_DIR is on your PATH" ;;
+    *)
+        warn "$BIN_DIR is not on your PATH yet"
+        printf '   Add this to your shell startup file, then open a new terminal:\n'
+        # shellcheck disable=SC2016  # printed literally for the user to copy
+        printf '   %sexport PATH="$HOME/.local/bin:$PATH"%s\n' "$C" "$N"
+        ;;
+esac
+
+cat <<EOF
+
+${G}${B}DistroForge is ready.${N}
+
+  ${B}distroforge${N}                      open the app (or find "DistroForge" in your menu)
+  ${B}distroforge apply --profile essentials --dry-run${N}
+  ${B}distroforge doctor${N}               check detection and setup
+  ${B}distroforge --help${N}
+
+  Uninstall:  ${D}bash $APP_DIR/uninstall.sh${N}  ${D}(or ./uninstall.sh from the repo)${N}
+
 EOF
 
-chmod +x "${BIN_DIR}/${APP_NAME}"
-ok "Launcher created"
-
-# ── PATH check ────────────────────────────────────────────────────────────────
-echo
-SHELL_RC=""
-if [[ -f "$HOME/.zshrc" ]]; then
-    SHELL_RC="$HOME/.zshrc"
-elif [[ -f "$HOME/.bashrc" ]]; then
-    SHELL_RC="$HOME/.bashrc"
-fi
-
-PATH_LINE='export PATH="$HOME/.local/bin:$PATH"'
-
-if [[ ":$PATH:" != *":${BIN_DIR}:"* ]]; then
-    warn "${BIN_DIR} is not in your current PATH"
-    if [[ -n "$SHELL_RC" ]]; then
-        if ! grep -qF "$PATH_LINE" "$SHELL_RC" 2>/dev/null; then
-            echo "" >> "$SHELL_RC"
-            echo "# Added by DistroForge installer" >> "$SHELL_RC"
-            echo "$PATH_LINE" >> "$SHELL_RC"
-            ok "Added ${BIN_DIR} to ${SHELL_RC}"
-            export PATH="$HOME/.local/bin:$PATH"
-        fi
-    else
-        echo
-        echo -e "  Add this to your shell config:"
-        echo -e "  ${CYAN}${PATH_LINE}${NC}"
-        echo
+# Keep a copy of the uninstaller next to the install.
+if [[ -n "$SCRIPT_DIR" && -f "$SCRIPT_DIR/uninstall.sh" ]]; then
+    install -m 0755 "$SCRIPT_DIR/uninstall.sh" "$APP_DIR/uninstall.sh"
+elif command -v curl >/dev/null 2>&1; then
+    if curl -fsSL "https://raw.githubusercontent.com/RezaLabsHQ/DistroForge/$REF/uninstall.sh" -o "$APP_DIR/uninstall.sh"; then
+        chmod 0755 "$APP_DIR/uninstall.sh"
     fi
-else
-    ok "${BIN_DIR} is already in PATH"
 fi
-
-# ── Done ──────────────────────────────────────────────────────────────────────
-echo
-echo -e "${GREEN}${BOLD}DistroForge installed successfully!${NC}"
-echo
-echo -e "  ${BOLD}Usage:${NC}"
-echo -e "    ${CYAN}distroforge${NC}                      — interactive mode"
-echo -e "    ${CYAN}distroforge --list${NC}               — show available phases"
-echo -e "    ${CYAN}distroforge --phases verify${NC}      — run health check"
-echo -e "    ${CYAN}distroforge --dry-run --yes${NC}      — preview all phases"
-echo -e "    ${CYAN}distroforge --phases system,shell${NC} — run specific phases"
-echo
-echo -e "  ${BOLD}Config:${NC}  ${INSTALL_DIR}/config.yaml"
-echo -e "  ${BOLD}Logs:${NC}    ~/.distroforge/logs/"
-echo -e "  ${BOLD}Update:${NC}  bash ${INSTALL_DIR}/install.sh"
-echo
-echo -e "  ${DIM}Reload your shell or run: source ${SHELL_RC:-~/.bashrc}${NC}"
-echo

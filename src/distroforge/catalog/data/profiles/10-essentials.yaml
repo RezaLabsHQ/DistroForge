@@ -1,0 +1,4 @@
+id: essentials
+name: Essentials
+description: Core command-line tools every fresh install needs
+items: [system-upgrade, git, curl, wget, archive-tools, tree, jq, ripgrep, fd, bat, fzf, htop, btop, rsync, openssh, flatpak]

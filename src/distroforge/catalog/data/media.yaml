@@ -1,0 +1,149 @@
+items:
+  # ── Audio & video ──
+  - id: vlc
+    name: VLC
+    category: media
+    description: Plays almost every media format
+    install:
+      - apt: vlc
+      - dnf: vlc
+      - pacman: vlc
+      - flatpak: org.videolan.VLC
+
+  - id: mpv
+    name: mpv
+    category: media
+    description: Minimal, scriptable media player
+    install:
+      - apt: mpv
+      - pacman: mpv
+      - flatpak: io.mpv.Mpv
+
+  - id: celluloid
+    name: Celluloid
+    category: media
+    description: Friendly GTK front-end for mpv
+    install:
+      - apt: celluloid
+      - dnf: celluloid
+      - pacman: celluloid
+      - flatpak: io.github.celluloid_player.Celluloid
+
+  - id: spotify
+    name: Spotify
+    category: media
+    description: Music streaming
+    install:
+      - flatpak: com.spotify.Client
+
+  - id: obs-studio
+    name: OBS Studio
+    category: media
+    description: Screen recording and live streaming
+    install:
+      - apt: obs-studio
+      - dnf: obs-studio
+      - pacman: obs-studio
+      - flatpak: com.obsproject.Studio
+
+  - id: audacity
+    name: Audacity
+    category: media
+    description: Multi-track audio editor
+    install:
+      - apt: audacity
+      - dnf: audacity
+      - pacman: audacity
+      - flatpak: org.audacityteam.Audacity
+
+  - id: kdenlive
+    name: Kdenlive
+    category: media
+    description: Non-linear video editor
+    install:
+      - apt: kdenlive
+      - dnf: kdenlive
+      - pacman: kdenlive
+      - flatpak: org.kde.kdenlive
+
+  - id: handbrake
+    name: HandBrake
+    category: media
+    description: Video transcoder
+    install:
+      - flatpak: fr.handbrake.ghb
+
+  - id: easyeffects
+    name: EasyEffects
+    category: media
+    description: Audio effects for PipeWire
+    install:
+      - apt: easyeffects
+      - dnf: easyeffects
+      - pacman: easyeffects
+      - flatpak: com.github.wwmm.easyeffects
+
+  - id: freetube
+    name: FreeTube
+    category: media
+    description: Private YouTube client
+    install:
+      - flatpak: io.freetubeapp.FreeTube
+
+  # ── Graphics & 3D ──
+  - id: gimp
+    name: GIMP
+    category: graphics
+    description: GNU Image Manipulation Program
+    install:
+      - apt: gimp
+      - dnf: gimp
+      - pacman: gimp
+      - flatpak: org.gimp.GIMP
+
+  - id: inkscape
+    name: Inkscape
+    category: graphics
+    description: Vector graphics editor
+    install:
+      - apt: inkscape
+      - dnf: inkscape
+      - pacman: inkscape
+      - flatpak: org.inkscape.Inkscape
+
+  - id: krita
+    name: Krita
+    category: graphics
+    description: Digital painting
+    install:
+      - apt: krita
+      - dnf: krita
+      - pacman: krita
+      - flatpak: org.kde.krita
+
+  - id: blender
+    name: Blender
+    category: graphics
+    description: 3D creation suite
+    install:
+      - apt: blender
+      - dnf: blender
+      - pacman: blender
+      - flatpak: org.blender.Blender
+
+  - id: darktable
+    name: darktable
+    category: graphics
+    description: Photography workflow and RAW developer
+    install:
+      - apt: darktable
+      - dnf: darktable
+      - pacman: darktable
+      - flatpak: org.darktable.Darktable
+
+  - id: pinta
+    name: Pinta
+    category: graphics
+    description: Simple image editing
+    install:
+      - flatpak: com.github.PintaProject.Pinta

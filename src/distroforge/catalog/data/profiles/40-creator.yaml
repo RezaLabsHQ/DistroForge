@@ -1,0 +1,4 @@
+id: creator
+name: Content creator
+description: Recording, video, audio and image editing
+items: [obs-studio, kdenlive, audacity, gimp, inkscape, krita, blender, vlc]

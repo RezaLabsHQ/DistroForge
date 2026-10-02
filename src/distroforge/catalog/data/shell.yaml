@@ -1,0 +1,182 @@
+items:
+  - id: zsh
+    name: Zsh
+    category: shell
+    description: Powerful interactive shell
+    install:
+      - apt: zsh
+      - dnf: zsh
+      - pacman: zsh
+
+  - id: fish
+    name: fish
+    category: shell
+    description: Friendly interactive shell
+    install:
+      - apt: fish
+      - dnf: fish
+      - pacman: fish
+
+  - id: tmux
+    name: tmux
+    category: shell
+    description: Terminal multiplexer
+    install:
+      - apt: tmux
+      - dnf: tmux
+      - pacman: tmux
+
+  - id: local-bin-path
+    name: ~/.local/bin on PATH
+    category: shell
+    kind: tweak
+    description: Make user-installed tools (starship, uv, …) available in every shell
+    post:
+      - action: shell_init
+        id: local-bin
+        bash: ['case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac']
+        zsh: ['case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac']
+        fish: ["fish_add_path -g $HOME/.local/bin"]
+
+  - id: starship
+    name: Starship prompt
+    category: shell
+    description: Fast, customizable cross-shell prompt
+    homepage: https://starship.rs
+    requires: [curl, local-bin-path]
+    check: { bin: starship, path: "{home}/.local/bin/starship" }
+    install:
+      - pacman: starship
+      - script:
+          url: https://starship.rs/install.sh
+          shell: sh
+          args: ["-y", "-b", "{home}/.local/bin"]
+    post:
+      - action: shell_init
+        id: starship
+        bash: ['command -v starship >/dev/null && eval "$(starship init bash)"']
+        zsh: ['command -v starship >/dev/null && eval "$(starship init zsh)"']
+        fish: ["command -q starship; and starship init fish | source"]
+
+  - id: oh-my-zsh
+    name: Oh My Zsh
+    category: shell
+    description: Zsh configuration framework (installs without replacing your .zshrc)
+    homepage: https://ohmyz.sh
+    requires: [zsh, git]
+    check: { path: "{home}/.oh-my-zsh" }
+    install:
+      - script:
+          url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+          shell: sh
+          args: ["--unattended", "--keep-zshrc"]
+          env: { RUNZSH: "no", CHSH: "no" }
+    post:
+      - action: shell_init
+        id: oh-my-zsh
+        zsh:
+          - 'export ZSH="$HOME/.oh-my-zsh"'
+          - '(( ${+functions[omz]} )) || { ZSH_THEME=""; plugins=(git sudo); [ -r "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"; }'
+
+  - id: zsh-autosuggestions
+    name: zsh-autosuggestions
+    category: shell
+    description: Fish-like command suggestions for zsh
+    requires: [zsh]
+    install:
+      - apt: zsh-autosuggestions
+      - dnf: zsh-autosuggestions
+      - pacman: zsh-autosuggestions
+    post:
+      - action: shell_init
+        id: zsh-autosuggestions
+        zsh:
+          - 'for f in /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh; do [ -r "$f" ] && source "$f" && break; done'
+
+  - id: zsh-syntax-highlighting
+    name: zsh-syntax-highlighting
+    category: shell
+    description: Fish-like syntax highlighting for zsh
+    requires: [zsh]
+    install:
+      - apt: zsh-syntax-highlighting
+      - dnf: zsh-syntax-highlighting
+      - pacman: zsh-syntax-highlighting
+    post:
+      - action: shell_init
+        id: zsh-syntax-highlighting
+        zsh:
+          - 'for f in /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do [ -r "$f" ] && source "$f" && break; done'
+
+  - id: zoxide
+    name: zoxide
+    category: shell
+    description: Smarter cd that learns your habits
+    install:
+      - apt: zoxide
+      - dnf: zoxide
+      - pacman: zoxide
+    post:
+      - action: shell_init
+        id: zoxide
+        bash: ['command -v zoxide >/dev/null && eval "$(zoxide init bash)"']
+        zsh: ['command -v zoxide >/dev/null && eval "$(zoxide init zsh)"']
+        fish: ["command -q zoxide; and zoxide init fish | source"]
+
+  - id: eza
+    name: eza
+    category: shell
+    description: Modern replacement for ls
+    install:
+      - apt: eza
+      - pacman: eza
+
+  - id: kitty
+    name: kitty
+    category: shell
+    description: GPU-accelerated terminal emulator
+    install:
+      - apt: kitty
+      - dnf: kitty
+      - pacman: kitty
+
+  - id: alacritty
+    name: Alacritty
+    category: shell
+    description: Fast, OpenGL terminal emulator
+    install:
+      - apt: alacritty
+      - dnf: alacritty
+      - pacman: alacritty
+
+  - id: ghostty
+    name: Ghostty
+    category: shell
+    description: Fast, native terminal emulator
+    install:
+      - pacman: ghostty
+
+  - id: wezterm
+    name: WezTerm
+    category: shell
+    description: GPU-accelerated terminal and multiplexer
+    install:
+      - flatpak: org.wezfurlong.wezterm
+
+  - id: zsh-default
+    name: Zsh as login shell
+    category: shell
+    kind: tweak
+    description: Make zsh your default shell
+    requires: [zsh]
+    post:
+      - { action: default_shell, shell: zsh }
+
+  - id: fish-default
+    name: fish as login shell
+    category: shell
+    kind: tweak
+    description: Make fish your default shell
+    requires: [fish]
+    post:
+      - { action: default_shell, shell: fish }

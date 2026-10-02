@@ -1,80 +1,66 @@
 # Contributing to DistroForge
 
-Thanks for your interest in contributing! Here's how to get started.
+Thanks for helping! Most contributions are catalog entries: adding an app is usually a few lines of YAML.
 
-## Development Setup
-
-```bash
-git clone https://github.com/rezalabshq/DistroForge.git
-cd DistroForge
-pip install -r requirements-dev.txt
-```
-
-## Running Tests
+## Setup
 
 ```bash
-# All tests
-python -m pytest tests/ -v
-
-# With coverage
-python -m pytest tests/ --cov=core --cov=phases --cov=distros
-
-# Single test file
-python -m pytest tests/test_detector.py -v
+git clone https://github.com/RezaLabsHQ/DistroForge.git && cd DistroForge
+python -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]"
+distroforge tui --dry-run      # safe: nothing is executed
 ```
 
-## Code Quality
+## Checks (CI runs all of these)
 
 ```bash
-# Lint
-ruff check .
-
-# Format
-ruff format .
-
-# Type check
-mypy core/ phases/ distros/ --ignore-missing-imports
+ruff check . && ruff format --check .
+mypy                                     # strict
+pytest                                   # unit + UI tests
+pytest -m integration tests/integration  # real installs in containers (needs podman/docker)
 ```
 
-## Project Structure
+## Adding or fixing an app
 
-- `core/` — Framework internals (detection, execution, logging, UI)
-- `phases/` — Setup phases (each phase is one file, one class)
-- `distros/` — Package manager adapters (one class per distro family)
-- `tests/` — Unit tests mirroring the source structure
+1. Pick the right file in `src/distroforge/catalog/data/` (one per category group).
+2. Add an item. List methods for every family you can verify, plus Flatpak if one exists on Flathub:
 
-## Adding a Phase
+   ```yaml
+   - id: my-app                 # lowercase, unique
+     name: My App
+     category: utilities        # see 00-categories.yaml
+     description: One line, no trailing period
+     install:
+       - apt: my-app
+       - dnf: my-app
+       - pacman: my-app
+       - flatpak: org.example.MyApp
+   ```
 
-1. Create `phases/your_phase.py`
-2. Inherit from `Phase`, implement `execute()`
-3. Use `self.step()` for progress, `self.cmd()` for commands
-4. Register in `PHASE_REGISTRY` in `distroforge.py`
-5. Add tests in `tests/test_your_phase.py`
+3. **Verify package names** on each distro: [packages.ubuntu.com](https://packages.ubuntu.com), [packages.debian.org](https://packages.debian.org), [packages.fedoraproject.org](https://packages.fedoraproject.org), [archlinux.org/packages](https://archlinux.org/packages), [flathub.org](https://flathub.org).
+4. Prefer distro packages and Flatpak. Use `script:` only for tools whose official install method is a script. Scripts need a `check:` and should pin a `sha256` when the upstream script is versioned.
+5. Run `pytest tests/unit/test_catalog.py`. It validates the whole catalog and plans every item on every family.
 
-## Adding a Distro
+## Code layout
 
-1. Create adapter class in `distros/__init__.py`
-2. Implement all `DistroAdapter` abstract methods
-3. Add to `get_adapter()` factory
-4. Add detection logic in `core/detector.py`
-5. Add tests in `tests/test_distros.py`
+| Path                         | What lives there                                              |
+| ---------------------------- | ------------------------------------------------------------- |
+| `src/distroforge/core/`      | detection, paths, settings, validation, executor, sudo, shell rc, downloads |
+| `src/distroforge/backends/`  | apt, dnf, pacman, AUR, Flatpak (one class each)                |
+| `src/distroforge/actions/`   | named, idempotent setup steps referenced from YAML            |
+| `src/distroforge/catalog/`   | data model, loader, built-in YAML data and profiles           |
+| `src/distroforge/engine/`    | resolver, planner, runner, profiles                           |
+| `src/distroforge/tui/`       | Textual app, screens, themes, stylesheet                      |
+| `src/distroforge/cli.py`     | command-line entry point                                      |
 
-## Pull Request Guidelines
+**Adding a package manager:** subclass `backends.base.Backend`, register it in `backends/__init__.py`, and add the family to `core/system.py`.
 
-- One feature per PR
-- Tests must pass (`python -m pytest tests/ -v`)
-- Lint must pass (`ruff check .`)
-- Write clear commit messages
-- Update README if adding user-facing features
+**Adding an action:** subclass `actions.base.Action` with strict `params` validators, `is_applied` and `ops`, then register it. Actions must be idempotent and must never build shell strings.
 
-## Commit Messages
+## Rules
 
-Use conventional commits:
-
-```
-feat: add Arch Linux adapter
-fix: handle missing /etc/os-release gracefully
-docs: update README with new phase
-test: add GPU detection edge cases
-refactor: extract SSH key setup into helper method
-```
+- Never use `shell=True`, `os.system` or string commands. Build `Command((...argv...))`. A test enforces this.
+- Validate every external value with `core.validate`.
+- Root writes go through `engine.ops.install_root_file` (allow-listed directories only).
+- Keep the UI responsive: probes and planning run in worker threads.
+- Commits: conventional style (`feat:`, `fix:`, `docs:` …).

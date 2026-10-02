@@ -1,0 +1,61 @@
+items:
+  - id: firefox
+    name: Firefox
+    category: browsers
+    description: Mozilla's open-source browser
+    notes: On Ubuntu the apt package is a Snap wrapper, so Flathub is used there by default.
+    install:
+      - dnf: firefox
+      - pacman: firefox
+      - flatpak: org.mozilla.firefox
+
+  - id: chromium
+    name: Chromium
+    category: browsers
+    description: Open-source base of Google Chrome
+    install:
+      - dnf: chromium
+      - pacman: chromium
+      - flatpak: org.chromium.Chromium
+
+  - id: brave
+    name: Brave
+    category: browsers
+    description: Privacy-focused Chromium browser
+    install:
+      - flatpak: com.brave.Browser
+
+  - id: google-chrome
+    name: Google Chrome
+    category: browsers
+    description: Google's browser
+    install:
+      - flatpak: com.google.Chrome
+
+  - id: librewolf
+    name: LibreWolf
+    category: browsers
+    description: Firefox fork focused on privacy
+    install:
+      - flatpak: io.gitlab.librewolf-community
+
+  - id: zen-browser
+    name: Zen Browser
+    category: browsers
+    description: Calm, Firefox-based browser
+    install:
+      - flatpak: app.zen_browser.zen
+
+  - id: vivaldi
+    name: Vivaldi
+    category: browsers
+    description: Highly customizable browser
+    install:
+      - flatpak: com.vivaldi.Vivaldi
+
+  - id: tor-browser
+    name: Tor Browser
+    category: browsers
+    description: Anonymous browsing via the Tor network (launcher)
+    install:
+      - flatpak: org.torproject.torbrowser-launcher
