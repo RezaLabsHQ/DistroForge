@@ -128,3 +128,16 @@ def test_unknown_item(catalog: Catalog, make_env) -> None:  # type: ignore[no-un
 def test_dependents_of(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
     plan = Planner(catalog, make_env(Family.FEDORA)).build({"spotify": None, "discord": None})
     assert plan.dependents_of("flatpak") == {"spotify", "discord"}
+
+
+def test_installed_item_does_not_pull_in_dependencies(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
+    env = make_env(Family.FEDORA, installed={"com.spotify.Client"})
+    plan = Planner(catalog, env).build({"spotify": "flatpak"})
+    assert [i.id for i, _ in plan.skipped] == ["spotify"]
+    assert plan.items == [] and plan.empty
+
+
+def test_unsupported_item_does_not_pull_in_dependencies(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
+    plan = Planner(catalog, make_env(Family.DEBIAN)).build({"ghostty": None})
+    assert [i.id for i, _ in plan.unsupported] == ["ghostty"]
+    assert plan.items == []

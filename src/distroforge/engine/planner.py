@@ -108,10 +108,12 @@ class Planner:
         plan = Plan()
         order: list[str] = []
         methods: dict[str, Method | None] = {}
+        state: dict[str, str] = {}  # item id → "plan" | "skipped" | "unsupported"
         visiting: list[str] = []
+        skip_installed = not reinstall and self.env.settings.skip_installed
 
         def visit(item_id: str) -> None:
-            if item_id in methods:
+            if item_id in state:
                 return
             if item_id in visiting:
                 cycle = " → ".join([*visiting[visiting.index(item_id) :], item_id])
@@ -119,12 +121,20 @@ class Planner:
             item = self.catalog.items.get(item_id)
             if item is None:
                 raise PlanError(f"Unknown item '{item_id}'")
-            visiting.append(item_id)
             method = self.resolver.choose(item, selection.get(item_id))
-            for dep in self._deps(item, method):
-                visit(dep)
-            visiting.pop()
             methods[item_id] = method
+            # Unsupported or already-installed items don't pull in their dependencies.
+            if not self.resolver.supported(item):
+                outcome = "unsupported"
+            elif skip_installed and self.resolver.is_installed(item, method):
+                outcome = "skipped"
+            else:
+                visiting.append(item_id)
+                for dep in self._deps(item, method):
+                    visit(dep)
+                visiting.pop()
+                outcome = "plan"
+            state[item_id] = outcome
             order.append(item_id)
 
         for item_id in selection:
@@ -134,6 +144,13 @@ class Planner:
         levels: dict[str, int] = {}
         for item_id in order:
             item = self.catalog.items[item_id]
+            if state[item_id] == "unsupported":
+                plan.unsupported.append((item, self.resolver.unsupported_reason(item)))
+                blocked.add(item_id)
+                continue
+            if state[item_id] == "skipped":
+                plan.skipped.append((item, "already installed"))
+                continue
             method = methods[item_id]
             deps = self._deps(item, method)
             failed_deps = [d for d in deps if d in blocked]
@@ -142,17 +159,6 @@ class Planner:
                     (item, f"Requires {', '.join(failed_deps)}, which can't be installed here")
                 )
                 blocked.add(item_id)
-                continue
-            if not self.resolver.supported(item):
-                plan.unsupported.append((item, self.resolver.unsupported_reason(item)))
-                blocked.add(item_id)
-                continue
-            if (
-                not reinstall
-                and self.env.settings.skip_installed
-                and self.resolver.is_installed(item, method)
-            ):
-                plan.skipped.append((item, "already installed"))
                 continue
             level = 1 + max((levels[d] for d in deps if d in levels), default=-1)
             levels[item_id] = level
