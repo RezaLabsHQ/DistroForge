@@ -13,7 +13,7 @@ from pathlib import Path
 from distroforge import __app_name__
 
 
-def _xdg(var: str, fallback: str) -> Path:
+def xdg_dir(var: str, fallback: str) -> Path:
     value = os.environ.get(var, "")
     # The spec says relative paths must be ignored.
     if value and Path(value).is_absolute():
@@ -52,8 +52,8 @@ class AppPaths:
 
 def default_paths() -> AppPaths:
     return AppPaths(
-        config=_xdg("XDG_CONFIG_HOME", ".config") / __app_name__,
-        data=_xdg("XDG_DATA_HOME", ".local/share") / __app_name__,
-        state=_xdg("XDG_STATE_HOME", ".local/state") / __app_name__,
-        cache=_xdg("XDG_CACHE_HOME", ".cache") / __app_name__,
+        config=xdg_dir("XDG_CONFIG_HOME", ".config") / __app_name__,
+        data=xdg_dir("XDG_DATA_HOME", ".local/share") / __app_name__,
+        state=xdg_dir("XDG_STATE_HOME", ".local/state") / __app_name__,
+        cache=xdg_dir("XDG_CACHE_HOME", ".cache") / __app_name__,
     )

@@ -50,7 +50,10 @@ def test_apt_repo_ops(tmp_path: Path) -> None:
     )
     text = previews(action.ops(params, ctx_for(Family.DEBIAN, tmp_path)))
     assert "/etc/apt/keyrings/docker.asc" in text
-    assert "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable" in text
+    assert (
+        "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable"
+        in text
+    )
     assert "/tmp/" not in text  # staged in a private dir, never a predictable /tmp path
     assert not action.supported(make_system(Family.FEDORA, tmp_path), params)
 
@@ -91,7 +94,9 @@ def test_sysctl_writes_dropin_not_sysctl_conf(tmp_path: Path) -> None:
     assert "/etc/sysctl.conf" not in text
 
 
-@pytest.mark.parametrize(("family", "expected"), [(Family.FEDORA, "firewalld"), (Family.DEBIAN, "ufw"), (Family.ARCH, "ufw")])
+@pytest.mark.parametrize(
+    ("family", "expected"), [(Family.FEDORA, "firewalld"), (Family.DEBIAN, "ufw"), (Family.ARCH, "ufw")]
+)
 def test_firewall_per_family(tmp_path: Path, family: Family, expected: str) -> None:
     action = get_action("firewall")
     assert expected in previews(action.ops({}, ctx_for(family, tmp_path)))
@@ -106,10 +111,14 @@ def test_user_group_uses_validated_username(tmp_path: Path) -> None:
     ]
 
 
-async def test_shell_init_applies_only_to_installed_shells(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_shell_init_applies_only_to_installed_shells(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     import distroforge.actions.user as user_mod
 
-    monkeypatch.setattr(user_mod.shutil, "which", lambda name: f"/usr/bin/{name}" if name in ("bash", "zsh") else None)
+    monkeypatch.setattr(
+        user_mod.shutil, "which", lambda name: f"/usr/bin/{name}" if name in ("bash", "zsh") else None
+    )
     monkeypatch.delenv("ZDOTDIR", raising=False)
     ctx = ctx_for(Family.FEDORA, tmp_path)
     action = get_action("shell_init")
@@ -182,3 +191,17 @@ def test_font_extraction_cannot_escape(tmp_path: Path) -> None:
     assert sorted(p.name for p in dest.iterdir()) == ["Font-Regular.ttf", "evil.ttf", "path.otf"]
     assert not (tmp_path / "evil.ttf").exists()
     assert all(not p.is_symlink() for p in dest.iterdir())
+
+
+async def test_sysctl_live_apply_skips_when_tool_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import distroforge.actions.system as system_mod
+
+    monkeypatch.setattr(system_mod.shutil, "which", lambda name: None)
+    action = get_action("sysctl")
+    ops = action.ops(action.parse({"key": "vm.swappiness", "value": 10}), ctx_for(Family.FEDORA, tmp_path))
+    live = ops[-1]
+    assert live.needs_root and "sysctl -p" in live.preview()[0]
+    result = await live.run(RunContext(system=make_system(Family.FEDORA, tmp_path), workdir=tmp_path))
+    assert result.status is Status.SKIPPED and "next boot" in result.message

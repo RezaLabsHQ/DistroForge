@@ -91,7 +91,13 @@ def test_email() -> None:
 
 @pytest.mark.parametrize(
     "path",
-    ["/etc/passwd", "/etc/apt/keyrings/../../shadow", "relative/x", "/etc/apt/keyrings", "/etc/apt/keyrings//x"],
+    [
+        "/etc/passwd",
+        "/etc/apt/keyrings/../../shadow",
+        "relative/x",
+        "/etc/apt/keyrings",
+        "/etc/apt/keyrings//x",
+    ],
 )
 def test_root_paths_confined(path: str) -> None:
     with pytest.raises(ValidationError):

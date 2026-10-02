@@ -78,7 +78,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S", "PTH"]
+"tests/**" = ["S", "PTH", "E501"]
 
 [tool.ruff.lint.flake8-bandit]
 # shell=True is banned everywhere (S602/S604 stay enabled).
@@ -86,7 +86,7 @@ ignore = [
 # ── Pytest ─────────────────────────────────────────
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -m 'not integration'"
 asyncio_mode = "auto"
 markers = [
     "integration: needs podman/docker and network (run with -m integration)",

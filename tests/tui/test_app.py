@@ -31,7 +31,9 @@ SIZE = (160, 48)
 
 @pytest.fixture
 def make_app(tmp_path: Path, catalog: Catalog, make_env) -> Callable[..., DistroForgeApp]:  # type: ignore[no-untyped-def]
-    def factory(*, installed: set[str] | None = None, dry_run: bool = True, **settings: object) -> DistroForgeApp:
+    def factory(
+        *, installed: set[str] | None = None, dry_run: bool = True, **settings: object
+    ) -> DistroForgeApp:
         env = make_env(Family.FEDORA, installed=installed or set(), settings=Settings(**settings))  # type: ignore[arg-type]
         root = tmp_path / "xdg"
         paths = AppPaths(root / "config", root / "data", root / "state", root / "cache")
@@ -193,7 +195,11 @@ async def test_settings_save_and_validation(make_app) -> None:  # type: ignore[n
         await pilot.pause()
         assert isinstance(app.screen, MainScreen)
         stored = load_settings(app.services.paths.settings_file)
-        assert (stored.git_name, stored.git_email, stored.theme) == ("Ada Lovelace", "ada@example.com", "nord")
+        assert (stored.git_name, stored.git_email, stored.theme) == (
+            "Ada Lovelace",
+            "ada@example.com",
+            "nord",
+        )
 
 
 async def test_settings_cancel_restores_theme(make_app) -> None:  # type: ignore[no-untyped-def]
@@ -267,7 +273,9 @@ async def test_failure_dialog_skip_marks_item_failed(make_app, catalog: Catalog)
 
 async def test_quit_disabled_while_running(make_app, catalog: Catalog) -> None:  # type: ignore[no-untyped-def]
     app = make_app(dry_run=False)
-    plan = Plan(steps=[Step("x", "install", ("jq",), [_Failing()])], items=[ItemPlan(catalog.items["jq"], None, 0)])
+    plan = Plan(
+        steps=[Step("x", "install", ("jq",), [_Failing()])], items=[ItemPlan(catalog.items["jq"], None, 0)]
+    )
     async with app.run_test(size=SIZE) as pilot:
         await pilot.pause()
         app.push_screen(RunScreen(plan, dry_run=False))

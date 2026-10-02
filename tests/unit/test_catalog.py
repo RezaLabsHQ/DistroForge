@@ -52,7 +52,9 @@ def test_whole_catalog_plans_without_errors(catalog: Catalog, make_env, family: 
 
 def test_shell_syntax_survives_substitution() -> None:
     line = '(( ${+functions[omz]} )) || { source "$ZSH/oh-my-zsh.sh"; } {home}'
-    assert substitute(line, {"home": "/h"}) == '(( ${+functions[omz]} )) || { source "$ZSH/oh-my-zsh.sh"; } /h'
+    assert (
+        substitute(line, {"home": "/h"}) == '(( ${+functions[omz]} )) || { source "$ZSH/oh-my-zsh.sh"; } /h'
+    )
 
 
 def _write(directory: Path, name: str, text: str) -> None:

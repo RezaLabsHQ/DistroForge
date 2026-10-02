@@ -18,7 +18,18 @@ def argvs(ops: list) -> list[list[str]]:  # type: ignore[type-arg]
 def test_apt_install_argv(tmp_path: Path) -> None:
     b = Backends(make_system(Family.DEBIAN, tmp_path)).get("apt")
     assert argvs(b.install_ops(["git", "curl"])) == [
-        ["sudo", "-n", "--", "env", "DEBIAN_FRONTEND=noninteractive", "apt-get", "install", "-y", "git", "curl"]
+        [
+            "sudo",
+            "-n",
+            "--",
+            "env",
+            "DEBIAN_FRONTEND=noninteractive",
+            "apt-get",
+            "install",
+            "-y",
+            "git",
+            "curl",
+        ]
     ]
     assert argvs(b.refresh_ops()) == [["sudo", "-n", "--", "apt-get", "update"]]
 
@@ -32,7 +43,9 @@ def test_dnf_install_argv(tmp_path: Path) -> None:
 def test_pacman_never_partial_upgrade(tmp_path: Path) -> None:
     b = Backends(make_system(Family.ARCH, tmp_path)).get("pacman")
     assert argvs(b.refresh_ops()) == [["sudo", "-n", "--", "pacman", "-Syu", "--noconfirm"]]
-    assert argvs(b.install_ops(["git"])) == [["sudo", "-n", "--", "pacman", "-S", "--needed", "--noconfirm", "git"]]
+    assert argvs(b.install_ops(["git"])) == [
+        ["sudo", "-n", "--", "pacman", "-S", "--needed", "--noconfirm", "git"]
+    ]
 
 
 def test_aur_runs_as_user_and_warns(tmp_path: Path) -> None:
@@ -49,7 +62,15 @@ def test_flatpak_scope(tmp_path: Path, scope: str, flag: str, root: bool) -> Non
     op = backends.flatpak.install_ops(["org.gimp.GIMP"])[0]
     assert isinstance(op, CommandOp)
     assert op.command.root is root
-    assert op.command.argv == ("flatpak", "install", flag, "-y", "--noninteractive", "flathub", "org.gimp.GIMP")
+    assert op.command.argv == (
+        "flatpak",
+        "install",
+        flag,
+        "-y",
+        "--noninteractive",
+        "flathub",
+        "org.gimp.GIMP",
+    )
 
 
 def test_backends_supported_only_for_own_family(tmp_path: Path) -> None:

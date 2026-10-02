@@ -17,16 +17,22 @@ from distroforge.core.system import (
 OS_RELEASES = {
     "ubuntu": ('ID=ubuntu\nID_LIKE=debian\nVERSION_CODENAME=noble\nVERSION_ID="24.04"', Family.DEBIAN),
     "debian": ('ID=debian\nVERSION_CODENAME=bookworm\nVERSION_ID="12"', Family.DEBIAN),
-    "mint": ("ID=linuxmint\nID_LIKE=\"ubuntu debian\"\nUBUNTU_CODENAME=noble\nVERSION_CODENAME=wilma", Family.DEBIAN),
+    "mint": (
+        'ID=linuxmint\nID_LIKE="ubuntu debian"\nUBUNTU_CODENAME=noble\nVERSION_CODENAME=wilma',
+        Family.DEBIAN,
+    ),
     "pop": ('ID=pop\nID_LIKE="ubuntu debian"\nUBUNTU_CODENAME=noble', Family.DEBIAN),
-    "elementary": ('ID=elementary\nID_LIKE=ubuntu', Family.DEBIAN),
+    "elementary": ("ID=elementary\nID_LIKE=ubuntu", Family.DEBIAN),
     "zorin": ('ID=zorin\nID_LIKE="ubuntu debian"', Family.DEBIAN),
-    "kali": ('ID=kali\nID_LIKE=debian', Family.DEBIAN),
-    "fedora": ('ID=fedora\nVERSION_ID=44\nPRETTY_NAME="Fedora Linux 44 (KDE Plasma Desktop Edition)"', Family.FEDORA),
+    "kali": ("ID=kali\nID_LIKE=debian", Family.DEBIAN),
+    "fedora": (
+        'ID=fedora\nVERSION_ID=44\nPRETTY_NAME="Fedora Linux 44 (KDE Plasma Desktop Edition)"',
+        Family.FEDORA,
+    ),
     "nobara": ('ID=nobara\nID_LIKE="rhel centos fedora"', Family.FEDORA),
     "rocky": ('ID="rocky"\nID_LIKE="rhel centos fedora"', Family.FEDORA),
     "alma": ('ID="almalinux"\nID_LIKE="rhel centos fedora"', Family.FEDORA),
-    "arch": ("ID=arch\nPRETTY_NAME=\"Arch Linux\"", Family.ARCH),
+    "arch": ('ID=arch\nPRETTY_NAME="Arch Linux"', Family.ARCH),
     "manjaro": ("ID=manjaro\nID_LIKE=arch", Family.ARCH),
     "endeavouros": ("ID=endeavouros\nID_LIKE=arch", Family.ARCH),
     "cachyos": ("ID=cachyos\nID_LIKE=arch", Family.ARCH),
@@ -47,7 +53,9 @@ def test_family_falls_back_to_package_manager_binary() -> None:
 
 
 def test_os_release_parsing_handles_quotes_and_comments() -> None:
-    os_release = parse_os_release('# comment\nNAME="Linux Mint"\nID=linuxmint\nID_LIKE="ubuntu debian"\n\nBROKEN')
+    os_release = parse_os_release(
+        '# comment\nNAME="Linux Mint"\nID=linuxmint\nID_LIKE="ubuntu debian"\n\nBROKEN'
+    )
     assert os_release.name == "Linux Mint"
     assert os_release.id_like == ("ubuntu", "debian")
     assert os_release.tokens == {"linuxmint", "ubuntu", "debian"}

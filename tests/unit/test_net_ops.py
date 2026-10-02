@@ -89,6 +89,16 @@ async def test_install_root_file_stages_privately(tmp_path: Path) -> None:
     assert result.status is Status.SUCCESS
     [cmd] = calls
     assert cmd.root
-    assert cmd.argv[:9] == ("install", "-D", "-m", "0644", "-o", "root", "-g", "root", str(tmp_path / "99-x.conf"))
+    assert cmd.argv[:9] == (
+        "install",
+        "-D",
+        "-m",
+        "0644",
+        "-o",
+        "root",
+        "-g",
+        "root",
+        str(tmp_path / "99-x.conf"),
+    )
     assert cmd.argv[-1] == "/etc/sysctl.d/99-x.conf"
     assert (tmp_path / "99-x.conf").read_text() == "vm.swappiness = 10\n"

@@ -4,7 +4,7 @@ from distroforge.catalog import Catalog
 from distroforge.catalog.models import parse_category, parse_item
 from distroforge.core.settings import Settings
 from distroforge.core.system import Family
-from distroforge.engine.planner import Plan, Planner, PlanError
+from distroforge.engine.planner import Plan, PlanError, Planner
 
 
 def stages(plan: Plan) -> list[tuple[str, tuple[str, ...]]]:
@@ -62,8 +62,18 @@ def test_already_installed_items_are_skipped(catalog: Catalog, make_env) -> None
 
 
 def test_partially_installed_item_only_runs_missing_parts(catalog: Catalog, make_env) -> None:  # type: ignore[no-untyped-def]
-    env = make_env(Family.FEDORA, installed={"podman", "docker-ce", "docker-ce-cli", "containerd.io",
-                                             "docker-buildx-plugin", "docker-compose-plugin"}, applied={"dnf_repo"})
+    env = make_env(
+        Family.FEDORA,
+        installed={
+            "podman",
+            "docker-ce",
+            "docker-ce-cli",
+            "containerd.io",
+            "docker-buildx-plugin",
+            "docker-compose-plugin",
+        },
+        applied={"dnf_repo"},
+    )
     plan = Planner(catalog, env).build({"docker": None})
     assert [s.stage for s in plan.steps] == ["post", "post"]  # only service + group remain
 

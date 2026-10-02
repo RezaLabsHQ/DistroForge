@@ -68,6 +68,7 @@ def _parser() -> argparse.ArgumentParser:
     lst = sub.add_parser("list", help="list catalog items")
     lst.add_argument("--category", help="only this category id")
     lst.add_argument("--installed", action="store_true", help="also check what is installed (slower)")
+    lst.add_argument("--ids", action="store_true", help="print only item ids, one per line (for scripts)")
 
     apply = sub.add_parser("apply", help="install items / a profile without the UI")
     apply.add_argument("items", nargs="*", help="catalog item ids")
@@ -89,6 +90,12 @@ def _parser() -> argparse.ArgumentParser:
     sub.add_parser("profiles", help="list available profiles")
     sub.add_parser("doctor", help="show detection results and check the environment")
 
+    integrate = sub.add_parser("integrate", help="add DistroForge to the app menu, plus icon and completions")
+    integrate.add_argument(
+        "--remove", action="store_true", help="remove the menu entry, icon and completions"
+    )
+    integrate.add_argument("--exec", dest="executable", help="launcher path to use in the menu entry")
+
     validate = sub.add_parser("validate", help="validate catalog YAML files")
     validate.add_argument("files", nargs="+", type=Path)
     return parser
@@ -107,11 +114,17 @@ def cmd_tui(services: Services, dry_run: bool) -> int:
     return EXIT_OK
 
 
-def cmd_list(services: Services, category: str | None, with_state: bool) -> int:
+def cmd_list(services: Services, category: str | None, with_state: bool, ids_only: bool = False) -> int:
     catalog = services.catalog
     if category and category not in catalog.categories:
         err.print(f"[red]Unknown category[/] {category!r}. Known: {', '.join(catalog.sorted_category_ids())}")
         return EXIT_USAGE
+    if ids_only:
+        for cid, items in catalog.by_category().items():
+            if not category or cid == category:
+                for item in items:
+                    print(item.id)
+        return EXIT_OK
     resolver = services.resolver()
     table = Table(box=None, pad_edge=False, header_style="bold")
     for column in ("id", "name", "category", "method", *(["installed"] if with_state else [])):
@@ -171,6 +184,24 @@ def cmd_doctor(services: Services) -> int:
             "use --distro to override."
         )
     return EXIT_OK if not services.catalog.errors else EXIT_FAILED
+
+
+def cmd_integrate(remove: bool, executable: str | None) -> int:
+    from distroforge import integrate
+
+    try:
+        paths = integrate.remove() if remove else integrate.install(executable)
+    except (OSError, FileNotFoundError) as exc:
+        err.print(f"[red]{exc}[/]")
+        return EXIT_FAILED
+    verb = "Removed" if remove else "Installed"
+    for path in paths:
+        console.print(f"[green]✓[/] {verb} {path}")
+    if not remove:
+        console.print(
+            "DistroForge is now in your app menu (System → DistroForge). It opens in your terminal."
+        )
+    return EXIT_OK
 
 
 def cmd_validate(files: list[Path]) -> int:
@@ -327,6 +358,8 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "validate":
         return cmd_validate(args.files)
+    if args.command == "integrate":
+        return cmd_integrate(args.remove, args.executable)
 
     family = Family(args.distro) if args.distro else None
     try:
@@ -335,7 +368,7 @@ def main(argv: list[str] | None = None) -> int:
         if command == "tui":
             return cmd_tui(services, getattr(args, "dry_run", False))
         if command == "list":
-            return cmd_list(services, args.category, args.installed)
+            return cmd_list(services, args.category, args.installed, args.ids)
         if command == "profiles":
             return cmd_profiles(services)
         if command == "doctor":

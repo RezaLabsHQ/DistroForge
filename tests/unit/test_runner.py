@@ -30,7 +30,9 @@ def _item(item_id: str):  # type: ignore[no-untyped-def]
     return Item(id=item_id, name=item_id, category="system", post=())
 
 
-def make_plan(steps: list[Step], items: list[str], requires: dict[str, tuple[str, ...]] | None = None) -> Plan:
+def make_plan(
+    steps: list[Step], items: list[str], requires: dict[str, tuple[str, ...]] | None = None
+) -> Plan:
     return Plan(steps=steps, items=[ItemPlan(_item(i), None, 0) for i in items], requires=requires or {})
 
 
@@ -101,7 +103,10 @@ async def test_abort_cancels_remaining(tmp_path: Path) -> None:
         return Decision.ABORT
 
     plan = make_plan(
-        [Step("a", "install", ("a",), [FakeOp("a", [False], log)]), Step("b", "install", ("b",), [FakeOp("b", [], log)])],
+        [
+            Step("a", "install", ("a",), [FakeOp("a", [False], log)]),
+            Step("b", "install", ("b",), [FakeOp("b", [], log)]),
+        ],
         ["a", "b"],
     )
     summary = await PlanRunner(plan, ctx(tmp_path), on_failure=abort).run()
@@ -119,8 +124,11 @@ async def test_item_marked_done_after_its_last_step(tmp_path: Path) -> None:
             changes.append((event.item_id, event.status))
 
     plan = make_plan(
-        [Step("a1", "install", ("a",), [FakeOp("a1", [], log)]), Step("b", "install", ("b",), [FakeOp("b", [], log)]),
-         Step("a2", "post", ("a",), [FakeOp("a2", [], log)])],
+        [
+            Step("a1", "install", ("a",), [FakeOp("a1", [], log)]),
+            Step("b", "install", ("b",), [FakeOp("b", [], log)]),
+            Step("a2", "post", ("a",), [FakeOp("a2", [], log)]),
+        ],
         ["a", "b"],
     )
     await PlanRunner(plan, ctx(tmp_path), on_event=on_event).run()

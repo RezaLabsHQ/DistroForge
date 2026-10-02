@@ -18,7 +18,14 @@ from distroforge.engine.profiles import (
 
 def test_builtin_profiles_reference_only_known_items(catalog: Catalog) -> None:
     profiles = builtin_profiles()
-    assert {p.id for p in profiles} >= {"essentials", "developer", "gaming", "creator", "hardening", "classic"}
+    assert {p.id for p in profiles} >= {
+        "essentials",
+        "developer",
+        "gaming",
+        "creator",
+        "hardening",
+        "classic",
+    }
     for profile in profiles:
         _, unknown = profile.selection(catalog)
         assert unknown == [], (profile.id, unknown)
@@ -77,7 +84,9 @@ def test_settings_roundtrip_and_permissions(tmp_path: Path) -> None:
 
 def test_invalid_settings_fall_back_to_defaults(tmp_path: Path) -> None:
     path = tmp_path / "settings.yaml"
-    path.write_text("theme: 'x; rm'\nprefer: snap\ngit_email: nope\ngit_name: '--evil'\nunknown: 1\nskip_installed: yes-ish\n")
+    path.write_text(
+        "theme: 'x; rm'\nprefer: snap\ngit_email: nope\ngit_name: '--evil'\nunknown: 1\nskip_installed: yes-ish\n"
+    )
     loaded = load_settings(path)
     assert loaded == Settings()
 

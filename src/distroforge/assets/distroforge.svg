@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>DistroForge</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#313244"/>
+      <stop offset="1" stop-color="#181825"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fab387"/>
+      <stop offset="1" stop-color="#eb6f92"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f9e2af" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#f9e2af" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- tile -->
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#bg)"/>
+  <rect x="8.5" y="8.5" width="239" height="239" rx="51.5" fill="none" stroke="#45475a" stroke-width="1"/>
+
+  <!-- spark -->
+  <circle cx="128" cy="70" r="44" fill="url(#glow)"/>
+  <g stroke="#f9e2af" stroke-width="5" stroke-linecap="round">
+    <line x1="128" y1="30" x2="128" y2="44"/>
+    <line x1="92" y1="48" x2="101" y2="58"/>
+    <line x1="164" y1="48" x2="155" y2="58"/>
+  </g>
+  <path d="M128 50 L134 66 L150 72 L134 78 L128 94 L122 78 L106 72 L122 66 Z" fill="#f9e2af"/>
+  <circle cx="84" cy="80" r="3.5" fill="#f5c2e7"/>
+  <circle cx="174" cy="84" r="3" fill="#f5c2e7"/>
+
+  <!-- anvil -->
+  <path fill="url(#metal)" d="
+    M36 112
+    H200
+    Q226 112 232 100
+    Q234 128 206 138
+    H178
+    Q166 140 164 152
+    L160 172
+    H176 Q190 172 190 186 V196
+    H66 V186 Q66 172 80 172
+    H96
+    L92 152
+    Q90 140 78 138
+    H64
+    Q40 136 36 112 Z"/>
+  <!-- face highlight -->
+  <path d="M40 112 H200 Q220 112 228 104" fill="none" stroke="#f9e2af" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- terminal prompt struck into the anvil -->
+  <path d="M112 146 L124 156 L112 166" fill="none" stroke="#1e1e2e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="130" y="161" width="16" height="6" rx="3" fill="#1e1e2e"/>
+</svg>

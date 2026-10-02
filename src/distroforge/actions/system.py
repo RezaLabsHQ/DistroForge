@@ -15,6 +15,21 @@ from distroforge.core.validate import check
 from distroforge.engine.ops import CommandOp, Operation, RunContext, TaskOp, install_root_file
 
 
+def _apply_now(title: str, argv: tuple[str, ...], fallback: str) -> TaskOp:
+    """Apply a persisted setting immediately when the tool exists.
+
+    The persistent file is what matters; minimal systems (containers) may lack
+    ``sysctl``/``modprobe``, in which case the setting simply applies {fallback}.
+    """
+
+    async def apply(run: RunContext) -> Result:
+        if shutil.which(argv[0]) is None:
+            return Result.skipped(f"'{argv[0]}' is not available; the setting applies {fallback}")
+        return await run.run(Command(argv, root=True))
+
+    return TaskOp(title, apply, [Command(argv, root=True).display()], needs_root=True)
+
+
 class Service(Action):
     name = "service"
     title = "Enable a systemd unit"
@@ -101,7 +116,7 @@ class Sysctl(Action):
         path = self._file(params)
         return [
             install_root_file(f"Persist {params['key']}", path, content=self._content(params)),
-            CommandOp(f"Apply {params['key']}", Command(("sysctl", "-p", path), root=True)),
+            _apply_now(f"Apply {params['key']}", ("sysctl", "-p", path), "at next boot"),
         ]
 
 
@@ -124,7 +139,7 @@ class KernelModule(Action):
             install_root_file(
                 f"Persist {params['module']}", self._file(params), content=params["module"] + "\n"
             ),
-            CommandOp(f"Load {params['module']}", Command(("modprobe", params["module"]), root=True)),
+            _apply_now(f"Load {params['module']}", ("modprobe", params["module"]), "at next boot"),
         ]
 
 

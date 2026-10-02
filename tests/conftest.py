@@ -72,7 +72,9 @@ def make_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Callable[..., E
         # Action state comes from probes of the real host; replace with a fixed set.
         monkeypatch.setattr(Resolver, "action_applied", lambda self, ref: ref.name in applied_set)
         # Binaries on the developer's machine must not leak into "is it installed?" checks.
-        monkeypatch.setattr(resolve_mod.shutil, "which", lambda name: f"/usr/bin/{name}" if name in ("sh", "bash") else None)
+        monkeypatch.setattr(
+            resolve_mod.shutil, "which", lambda name: f"/usr/bin/{name}" if name in ("sh", "bash") else None
+        )
         return Environment(system, backends, settings or Settings())
 
     return factory
